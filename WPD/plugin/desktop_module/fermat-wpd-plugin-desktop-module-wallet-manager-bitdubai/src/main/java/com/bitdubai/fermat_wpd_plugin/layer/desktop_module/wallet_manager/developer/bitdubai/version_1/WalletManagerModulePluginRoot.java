@@ -8,6 +8,7 @@ import com.bitdubai.fermat_api.layer.all_definition.common.system.abstract_class
 import com.bitdubai.fermat_api.layer.all_definition.common.system.annotations.NeededAddonReference;
 import com.bitdubai.fermat_api.layer.all_definition.common.system.annotations.NeededPluginReference;
 import com.bitdubai.fermat_api.layer.all_definition.common.system.exceptions.CantGetModuleManagerException;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
 import com.bitdubai.fermat_api.layer.all_definition.common.system.utils.PluginVersionReference;
 import com.bitdubai.fermat_api.layer.all_definition.developer.LogManagerForDevelopers;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Addons;
@@ -24,12 +25,16 @@ import com.bitdubai.fermat_api.layer.all_definition.events.interfaces.FermatEven
 import com.bitdubai.fermat_api.layer.all_definition.events.interfaces.FermatEventListener;
 import com.bitdubai.fermat_api.layer.all_definition.exceptions.InvalidParameterException;
 import com.bitdubai.fermat_api.layer.all_definition.runtime.FermatApp;
+import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantGetSettingsException;
+import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantPersistSettingsException;
+import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.SettingsNotFoundException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
+import com.bitdubai.fermat_api.layer.core.PluginInfo;
 import com.bitdubai.fermat_api.layer.dmp_middleware.wallet_manager.CantCreateNewWalletException;
 import com.bitdubai.fermat_api.layer.dmp_middleware.wallet_manager.InstalledLanguage;
 import com.bitdubai.fermat_api.layer.dmp_middleware.wallet_manager.InstalledSkin;
-import com.bitdubai.fermat_api.layer.dmp_module.AppManagerSettings;
+import com.bitdubai.fermat_api.layer.dmp_module.DesktopManagerSettings;
 import com.bitdubai.fermat_api.layer.dmp_module.wallet_manager.CantCreateDefaultWalletsException;
 import com.bitdubai.fermat_api.layer.dmp_module.wallet_manager.CantEnableWalletException;
 import com.bitdubai.fermat_api.layer.dmp_module.wallet_manager.CantGetIfIntraWalletUsersExistsException;
@@ -58,8 +63,6 @@ import com.bitdubai.fermat_ccp_api.layer.basic_wallet.loss_protected_wallet.inte
 import com.bitdubai.fermat_ccp_api.layer.identity.intra_user.exceptions.CantCreateNewIntraWalletUserException;
 import com.bitdubai.fermat_ccp_api.layer.identity.intra_user.exceptions.CantListIntraWalletUsersException;
 import com.bitdubai.fermat_ccp_api.layer.identity.intra_user.interfaces.IntraWalletUserIdentityManager;
-import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 import com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.exceptions.CantPersistWalletException;
 import com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.exceptions.NewWalletCreationFailedException;
@@ -93,16 +96,16 @@ import java.util.UUID;
  * @version 1.0
  * @since Java JDK 1.7
  */
-public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSettings,ActiveActorIdentityInformation> implements
+
+@PluginInfo(createdBy = "Luis", maintainerMail = "nattyco@gmail.com", platform = Platforms.CRYPTO_CURRENCY_PLATFORM, layer = Layers.DESKTOP_MODULE, plugin = Plugins.WALLET_MANAGER)
+
+public class WalletManagerModulePluginRoot extends AbstractModule<DesktopManagerSettings,ActiveActorIdentityInformation> implements
         LogManagerForDevelopers,
         WalletManagerModule,
         WalletManager {
 
     @NeededPluginReference(platform = Platforms.CRYPTO_CURRENCY_PLATFORM, layer = Layers.BASIC_WALLET   , plugin = Plugins.BITCOIN_WALLET)
     private BitcoinWalletManager bitcoinWalletManager;
-
-    @NeededAddonReference(platform = Platforms.PLUG_INS_PLATFORM   , layer = Layers.PLATFORM_SERVICE, addon = Addons.ERROR_MANAGER         )
-    private ErrorManager errorManager;
 
     @NeededAddonReference(platform = Platforms.PLUG_INS_PLATFORM   , layer = Layers.PLATFORM_SERVICE, addon = Addons.EVENT_MANAGER         )
     private EventManager eventManager;
@@ -125,20 +128,24 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
     @NeededPluginReference(platform = Platforms.CRYPTO_CURRENCY_PLATFORM, layer = Layers.BASIC_WALLET   , plugin = Plugins.LOSS_PROTECTED_WALLET)
     private BitcoinLossProtectedWalletManager bitcoinLossProtectedWalletManager;
 
+//    @NeededPluginReference(platform = Platforms.BLOCKCHAINS, layer = Layers.CRYPTO_NETWORK   , plugin = Plugins.BITCOIN_NETWORK)
+//    private BitcoinNetworkManager bitcoinNetworkManager;
+
+
     /**
      * WalletManager Interface member variables.
      */
-    String deviceUserPublicKey = "";
+    String deviceUserPublicKey = "walletDevice";
     String walletPublicKey = "reference_wallet";
     String lossProtectedwalletPublicKey = "loss_protected_wallet";
 
     List<InstalledWallet> userWallets;
 
-    private Map<String, String> walletIds = new HashMap<>();
+    Map<String, String> walletIds = new HashMap<>();
     static Map<String, LogLevel> newLoggingLevel = new HashMap<String, LogLevel>();
 
     List<FermatEventListener> listenersAdded = new ArrayList<>();
-    private SettingsManager<AppManagerSettings> settingsManager;
+    private SettingsManager<DesktopManagerSettings> settingsManager;
 
 
     public WalletManagerModulePluginRoot() {
@@ -162,7 +169,8 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
         boolean existWallet = false;
         boolean existWalletLoss = false;
         try {
-            //load user's wallets ids
+
+             //load user's wallets ids
             this.loadUserWallets(deviceUserPublicKey);
 
             Iterator iterator = walletIds.entrySet().iterator();
@@ -182,6 +190,7 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
                 try {
 
                     bitcoinWalletManager.createWallet(walletPublicKey);
+                    walletIds.put(UUID.randomUUID().toString(), walletPublicKey);
 
 
                     //Save wallet id on file
@@ -207,11 +216,11 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
 
 
                     bitcoinLossProtectedWalletManager.createWallet(lossProtectedwalletPublicKey);
-
+                      walletIds.put(UUID.randomUUID().toString(), lossProtectedwalletPublicKey);
                     //Save wallet id on file
 
                     try {
-                        this.persistWallet(walletPublicKey);
+                        this.persistWallet(lossProtectedwalletPublicKey);
                     } catch (CantPersistWalletException cantPersistWalletException) {
                         throw new CantStartPluginException(cantPersistWalletException, Plugins.BITDUBAI_WPD_WALLET_MANAGER_DESKTOP_MODULE);
 
@@ -222,12 +231,14 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
 
                 }
             }
+
+
             this.serviceStatus = ServiceStatus.STARTED;
 
 
 
         } catch (Exception cantLoadWalletsException) {
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_WPD_WALLET_MANAGER_DESKTOP_MODULE, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantLoadWalletsException);
+           reportError(UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantLoadWalletsException);
             throw new CantStartPluginException();
         }
 
@@ -413,26 +424,46 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
         /**
          * Now I will add this wallet to the list of wallets managed by the plugin.
          */
-        walletIds.put(deviceUserPublicKey, walletId);
+        String fileContent= "";
 
         PluginTextFile walletIdsFile = null;
 
         try {
-            walletIdsFile = pluginFileSystem.createTextFile(pluginId, "", DeviceDirectory.LOCAL_WALLETS.getName(), FilePrivacy.PRIVATE, FileLifeSpan.PERMANENT);
+            walletIdsFile = pluginFileSystem.getTextFile(pluginId, "", DeviceDirectory.LOCAL_WALLETS.getName(), FilePrivacy.PRIVATE, FileLifeSpan.PERMANENT);
+
+            fileContent = walletIdsFile.getContent();
         } catch (CantCreateFileException cantCreateFileException) {
 
             /**
              * If I can not save this file, then this plugin shouldn't be running at all.
              */
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_WPD_WALLET_MANAGER_DESKTOP_MODULE, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateFileException);
+            System.err.println("cantCreateFileException: " + cantCreateFileException.getMessage());
+           reportError(UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateFileException);
 
             throw new CantPersistWalletException();
+        } catch (FileNotFoundException e) {
+            try {
+                walletIdsFile = pluginFileSystem.createTextFile(pluginId, "", DeviceDirectory.LOCAL_WALLETS.getName(), FilePrivacy.PRIVATE, FileLifeSpan.PERMANENT);
+            } catch (CantCreateFileException cantCreateFileException) {
+
+                /**
+                 * If I can not save this file, then this plugin shouldn't be running at all.
+                 */
+               reportError(UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateFileException);
+
+                throw new CantPersistWalletException();
+            }
         }
+
+
 
         /**
          * I will generate the file content.
          */
-        StringBuilder stringBuilder = new StringBuilder(walletIds.size() * 72);
+
+        //fileContent+= deviceUserPublicKey + "," + walletId + ";";
+
+       StringBuilder stringBuilder = new StringBuilder(walletIds.size() * 72);
 
         Iterator iterator = walletIds.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -453,7 +484,7 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
             /**
              * If I can not save the id of the new wallet created, then this method fails.
              */
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_WPD_WALLET_MANAGER_DESKTOP_MODULE, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantPersistFileException);
+           reportError(UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantPersistFileException);
             throw new CantPersistWalletException();
         }
 
@@ -694,7 +725,7 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
                  * If I can not save this file, then this plugin shouldn't be running at all.
                  */
                 System.err.println("cantCreateFileException: " + cantCreateFileException.getMessage());
-                errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_BITCOIN_WALLET_BASIC_WALLET, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateFileException);
+                reportError(UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateFileException);
 
                 throw new CantLoadWalletsException();
             }
@@ -720,7 +751,7 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
                         String[] idPair = stringWalletId.split(",", -1);
 
                         //put wallets of this user
-                        if (idPair[0].equals(deviceUserPublicKey))
+                      //  if (idPair[0].equals(deviceUserPublicKey))
                             walletIds.put(idPair[0], idPair[1]);
 
                         /**
@@ -760,7 +791,7 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
                  * If I can not save this file, then this plugin shouldn't be running at all.
                  */
                 System.err.println("cantCreateFileException: " + cantCreateFileException.getMessage());
-                errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_BITCOIN_WALLET_BASIC_WALLET, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateFileException);
+               reportError(UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateFileException);
                 throw new CantLoadWalletsException();
             }
             try {
@@ -771,7 +802,7 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
                  * If I can not save this file, then this plugin shouldn't be running at all.
                  */
                 System.err.println("CantPersistFileException: " + cantPersistFileException.getMessage());
-                errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_BITCOIN_WALLET_BASIC_WALLET, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantPersistFileException);
+               reportError(UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantPersistFileException);
                 throw new CantLoadWalletsException();
             }
         }
@@ -816,7 +847,7 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
     }
 
     @Override
-    public SettingsManager<AppManagerSettings> getSettingsManager() {
+    public SettingsManager<DesktopManagerSettings> getSettingsManager() {
         System.out.println("Settings manager 1: "+ String.valueOf(settingsManager!=null) );
         if (this.settingsManager != null)
             return this.settingsManager;
@@ -859,8 +890,18 @@ public class WalletManagerModulePluginRoot extends AbstractModule<AppManagerSett
     }
 
     @Override
-    public ModuleManager<AppManagerSettings, ActiveActorIdentityInformation> getModuleManager() throws CantGetModuleManagerException {
+    public ModuleManager<DesktopManagerSettings, ActiveActorIdentityInformation> getModuleManager() throws CantGetModuleManagerException {
         return this;
+    }
+
+    @Override
+    public void persistSettings(String publicKey, DesktopManagerSettings settings) throws CantPersistSettingsException {
+        getSettingsManager().persistSettings(publicKey,settings);
+    }
+
+    @Override
+    public DesktopManagerSettings loadAndGetSettings(String publicKey) throws CantGetSettingsException, SettingsNotFoundException {
+        return getSettingsManager().loadAndGetSettings(publicKey);
     }
 }
 

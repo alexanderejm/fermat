@@ -3,9 +3,6 @@ package com.bitdubai.fermat_ccp_plugin.layer.module.intra_user.developer.bitduba
 import com.bitdubai.fermat_api.FermatException;
 import com.bitdubai.fermat_api.layer.actor_connection.common.enums.ConnectionState;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Actors;
-import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantGetSettingsException;
-import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantPersistSettingsException;
-import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.SettingsNotFoundException;
 import com.bitdubai.fermat_api.layer.all_definition.util.XMLParser;
 import com.bitdubai.fermat_api.layer.modules.ModuleManagerImpl;
 import com.bitdubai.fermat_api.layer.modules.common_classes.ActiveActorIdentityInformation;
@@ -222,24 +219,69 @@ public class IntraUserModuleManagerImpl extends ModuleManagerImpl<IntraUserWalle
 
         try {
 
-            List<IntraUserInformation> intraUserInformationModuleList = new ArrayList<>();
+                //verifico la cache para mostrar los que tenia antes y los nuevos
+                List<IntraUserInformation> userCacheList = new ArrayList<>();
+                try {
+                    userCacheList = getCacheSuggestionsToContact(max, offset);
+                } catch (CantGetIntraUsersListException e) {
+                    e.printStackTrace();
+                }
 
-            List<IntraUserInformation> intraUserInformationList = new ArrayList<>();
-            intraUserInformationList = intraUserNertwokServiceManager.getIntraUsersSuggestions(max, offset);
+                List<IntraUserInformation> intraUserInformationModuleList = new ArrayList<>();
+
+                List<IntraUserInformation> intraUserInformationList = new ArrayList<>();
+                intraUserInformationList = intraUserNertwokServiceManager.getIntraUsersSuggestions(max, offset);
 
 
 
-            for (IntraUserInformation intraUser : intraUserInformationList) {
+                for (IntraUserInformation intraUser : intraUserInformationList) {
 
-                //get connection state status
-                ConnectionState connectionState = this.intraWalletUserManager.getIntraUsersConnectionStatus(intraUser.getPublicKey());
+                    //get connection state status
+                    ConnectionState connectionState = this.intraWalletUserManager.getIntraUsersConnectionStatus(intraUser.getPublicKey());
 
-                //return intra user information - if not connected - status return null
-                IntraUserInformation intraUserInformation = new IntraUserModuleInformation(intraUser.getName(),intraUser.getPhrase(),intraUser.getPublicKey(),intraUser.getProfileImage(), connectionState,"Online");
-                intraUserInformationModuleList.add(intraUserInformation);
+                    //return intra user information - if not connected - status return null
+                    IntraUserInformation intraUserInformation = new IntraUserModuleInformation(intraUser.getName(),intraUser.getPhrase(),intraUser.getPublicKey(),intraUser.getProfileImage(), connectionState,"Online");
+                    intraUserInformationModuleList.add(intraUserInformation);
+                }
+
+
+            if(intraUserInformationModuleList!=null) {
+                if (userCacheList.size() == 0) {
+                    return intraUserInformationModuleList;
+                }
+                else {
+                    if (intraUserInformationModuleList.size() == 0) {
+                        return userCacheList;
+                    }
+                    else {
+                        for (IntraUserInformation intraUserCache : userCacheList) {
+                            boolean exist = false;
+                            for (IntraUserInformation intraUser : intraUserInformationModuleList) {
+                                if (intraUserCache.getPublicKey().equals(intraUser.getPublicKey())) {
+                                    exist = true;
+                                    break;
+                                }
+                            }
+                            if (!exist)
+                                intraUserInformationModuleList.add(intraUserCache);
+                        }
+
+                        //save cache records
+                        try {
+                            saveCacheIntraUsersSuggestions(intraUserInformationModuleList);
+                        } catch (CantGetIntraUsersListException e) {
+                            e.printStackTrace();
+                        }
+
+                        return intraUserInformationModuleList;
+                    }
+                }
+            }
+            else {
+                return userCacheList;
             }
 
-            return intraUserInformationModuleList;
+
 
         }
         catch (ErrorSearchingSuggestionsException e) {
@@ -267,6 +309,10 @@ public class IntraUserModuleManagerImpl extends ModuleManagerImpl<IntraUserWalle
 
                 //return intra user information - if not connected - status return null
                 IntraUserInformation intraUserInformation = new IntraUserModuleInformation(intraUser.getName(),intraUser.getPhrase(),intraUser.getPublicKey(),intraUser.getProfileImage(), connectionState,"Offline");
+
+                //testing reason
+                intraUserInformation.setProfileImageNull();
+
                 intraUserInformationModuleList.add(intraUserInformation);
             }
 
@@ -328,10 +374,6 @@ public class IntraUserModuleManagerImpl extends ModuleManagerImpl<IntraUserWalle
     public void askIntraUserForAcceptance(String intraUserToAddName, String intraUserToAddPhrase, String intraUserToAddPublicKey, byte[] OthersProfileImage,byte[] MyProfileImage, String identityPublicKey, String identityAlias) throws CantStartRequestException {
 
         try {
-            /**
-             *Call Actor Intra User to add request connection
-             */
-            this.intraWalletUserManager.askIntraWalletUserForAcceptance(identityPublicKey, intraUserToAddName, intraUserToAddPhrase, intraUserToAddPublicKey, OthersProfileImage);
 
             /**
              *Call Network Service Intra User to add request connection
@@ -345,6 +387,12 @@ public class IntraUserModuleManagerImpl extends ModuleManagerImpl<IntraUserWalle
                 this.intraUserNertwokServiceManager.acceptIntraUser(identityPublicKey, intraUserToAddPublicKey);
                 System.out.println("The user is connected");
             }
+
+            /**
+             *Call Actor Intra User to add request connection
+             */
+            this.intraWalletUserManager.askIntraWalletUserForAcceptance(identityPublicKey, intraUserToAddName, intraUserToAddPhrase, intraUserToAddPublicKey, OthersProfileImage);
+
 
         } catch (CantCreateIntraWalletUserException e) {
             throw new CantStartRequestException("", e, "", "");
@@ -699,15 +747,6 @@ public class IntraUserModuleManagerImpl extends ModuleManagerImpl<IntraUserWalle
         return notifications;
     }
 
-    @Override
-    public void persistSettings(String publicKey, IntraUserWalletSettings settings) throws CantPersistSettingsException {
-        getSettingsManager().persistSettings(publicKey,settings);
-    }
-
-    @Override
-    public IntraUserWalletSettings loadAndGetSettings(String publicKey) throws CantGetSettingsException, SettingsNotFoundException {
-        return getSettingsManager().loadAndGetSettings(publicKey);
-    }
 
 
 

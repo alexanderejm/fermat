@@ -1,5 +1,6 @@
 package com.bitdubai.fermat_art_plugin.layer.sub_app_module.artist_identity.developer.bitdubai.version_1.structure;
 
+import com.bitdubai.fermat_api.layer.modules.ModuleManagerImpl;
 import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
 import com.bitdubai.fermat_api.layer.modules.common_classes.ActiveActorIdentityInformation;
@@ -22,6 +23,7 @@ import com.bitdubai.fermat_art_api.layer.identity.artist.interfaces.Artist;
 import com.bitdubai.fermat_art_api.layer.identity.artist.interfaces.ArtistIdentityManager;
 import com.bitdubai.fermat_art_api.layer.sub_app_module.identity.Artist.ArtistIdentityManagerModule;
 import com.bitdubai.fermat_art_api.layer.sub_app_module.identity.Artist.ArtistIdentitySettings;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -31,22 +33,20 @@ import java.util.UUID;
 /**
  * Created by alexander on 3/15/16.
  */
-public class ModuleArtistIdentityManager implements ArtistIdentityManagerModule,Serializable {
+public class ModuleArtistIdentityManager
+        extends ModuleManagerImpl<ArtistIdentitySettings>
+        implements ArtistIdentityManagerModule,Serializable {
+
     private final ArtistIdentityManager artistIdentityManager;
     private final ErrorManager errorManager;
-    private final PluginFileSystem pluginFileSystem;
-    private final UUID pluginId;
-
-    private SettingsManager<ArtistIdentitySettings> settingsManager;
 
     public ModuleArtistIdentityManager(ErrorManager errorManager,
                                        ArtistIdentityManager artistIdentityManager,
                                        PluginFileSystem pluginFileSystem,
                                        UUID pluginId) {
+        super(pluginFileSystem, pluginId);
         this.errorManager = errorManager;
         this.artistIdentityManager = artistIdentityManager;
-        this.pluginFileSystem = pluginFileSystem;
-        this.pluginId = pluginId;
 
     }
 
@@ -120,8 +120,7 @@ public class ModuleArtistIdentityManager implements ArtistIdentityManagerModule,
         artistIdentityManager.hideIdentity(publicKey);
     }
 
-
-    @Override
+    /*@Override
     public SettingsManager<ArtistIdentitySettings> getSettingsManager() {
         if (this.settingsManager != null)
             return this.settingsManager;
@@ -132,7 +131,7 @@ public class ModuleArtistIdentityManager implements ArtistIdentityManagerModule,
         );
 
         return this.settingsManager;
-    }
+    }*/
 
     @Override
     public ActiveActorIdentityInformation getSelectedActorIdentity() throws CantGetSelectedActorIdentityException, ActorIdentityNotSelectedException {

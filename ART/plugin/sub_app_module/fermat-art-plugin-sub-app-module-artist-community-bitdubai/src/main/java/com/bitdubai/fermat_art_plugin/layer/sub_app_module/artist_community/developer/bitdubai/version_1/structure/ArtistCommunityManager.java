@@ -20,6 +20,7 @@ import com.bitdubai.fermat_api.layer.all_definition.components.enums.PlatformCom
 import com.bitdubai.fermat_api.layer.all_definition.enums.Actors;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantPersistSettingsException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
+import com.bitdubai.fermat_api.layer.modules.ModuleManagerImpl;
 import com.bitdubai.fermat_api.layer.modules.exceptions.ActorIdentityNotSelectedException;
 import com.bitdubai.fermat_api.layer.modules.exceptions.CantGetSelectedActorIdentityException;
 import com.bitdubai.fermat_api.layer.osa_android.file_system.PluginFileSystem;
@@ -78,7 +79,8 @@ import java.util.UUID;
 /**
  * Created by Alexander Jimenez (alex_jimenez76@hotmail.com) on 3/23/16.
  */
-public class ArtistCommunityManager implements ArtistCommunitySubAppModuleManager,Serializable {
+public class ArtistCommunityManager extends ModuleManagerImpl<ArtistCommunitySettings>
+        implements ArtistCommunitySubAppModuleManager,Serializable {
 
     private final ArtistIdentityManager                         artistIdentityManager                 ;
     private final ArtistActorConnectionManager                  artistActorConnectionManager          ;
@@ -86,9 +88,7 @@ public class ArtistCommunityManager implements ArtistCommunitySubAppModuleManage
     private final FanActorConnectionManager                     fanActorConnectionManager             ;
     private final FanManager                                    fanActorNetworkServiceManager         ;
     private final FanaticIdentityManager                        fanaticIdentityManager                ;
-    private final ErrorManager errorManager                          ;
-    private final PluginFileSystem                              pluginFileSystem                      ;
-    private final UUID                                          pluginId                              ;
+    private final ErrorManager                                  errorManager                          ;
     private final PluginVersionReference                        pluginVersionReference                ;
 
     private       String                                        subAppPublicKey                       ;
@@ -109,13 +109,12 @@ public class ArtistCommunityManager implements ArtistCommunitySubAppModuleManage
             final FanManager fanActorNetworkServiceManager,
             final FanActorConnectionManager fanActorConnectionManager) {
 
+        super(pluginFileSystem, pluginId);
         this.artistIdentityManager                  = artistIdentityManager                 ;
         this.artistActorConnectionManager           = artistActorConnectionManager          ;
         this.artistActorNetworkServiceManager       = artistActorNetworkServiceManager      ;
         this.fanaticIdentityManager                 = fanaticIdentityManager                ;
         this.errorManager                           = errorManager                          ;
-        this.pluginFileSystem                       = pluginFileSystem                      ;
-        this.pluginId                               = pluginId                              ;
         this.pluginVersionReference                 = pluginVersionReference                ;
         this.fanActorNetworkServiceManager          = fanActorNetworkServiceManager         ;
         this.fanActorConnectionManager              = fanActorConnectionManager             ;
@@ -558,7 +557,7 @@ public class ArtistCommunityManager implements ArtistCommunitySubAppModuleManage
 
         return ConnectionState.DISCONNECTED_LOCALLY;    }
     
-    public SettingsManager<ArtistCommunitySettings> getSettingsManager() {
+    /*public SettingsManager<ArtistCommunitySettings> getSettingsManager() {
         if (this.settingsManager != null)
             return this.settingsManager;
 
@@ -568,7 +567,7 @@ public class ArtistCommunityManager implements ArtistCommunitySubAppModuleManage
         );
 
         return this.settingsManager;
-    }
+    }*/
 
     @Override
     public ArtistCommunitySelectableIdentity getSelectedActorIdentity() throws CantGetSelectedActorIdentityException, ActorIdentityNotSelectedException {

@@ -7,7 +7,7 @@ import com.bitdubai.fermat_api.layer.all_definition.runtime.FermatApp;
 import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
 import com.bitdubai.fermat_api.layer.dmp_engine.sub_app_runtime.enums.SubApps;
-import com.bitdubai.fermat_api.layer.dmp_module.AppManagerSettings;
+import com.bitdubai.fermat_api.layer.dmp_module.DesktopManagerSettings;
 import com.bitdubai.fermat_api.layer.dmp_module.sub_app_manager.CantGetUserSubAppException;
 import com.bitdubai.fermat_api.layer.dmp_module.sub_app_manager.InstalledSubApp;
 import com.bitdubai.fermat_api.layer.dmp_module.sub_app_manager.SubAppManager;
@@ -65,7 +65,7 @@ public class SubAppManagerProvisory implements SubAppManager {
         //TODO - CHT Platform
         installedSubApp = new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp(SubApps.CHT_CHAT, null, null, "chat_sub_app", "Chat", SubAppsPublicKeys.CHT_OPEN_CHAT.getCode(), "chat_sub_app", new Version(1, 0, 0),Platforms.CHAT_PLATFORM, AppsStatus.ALPHA);
         lstInstalledSubApps.put(installedSubApp.getAppPublicKey(), installedSubApp);
-        installedSubApp = new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp(SubApps.CHT_CHAT_IDENTITY, null, null, "sub_app_chat_identity", "Chat Identity", SubAppsPublicKeys.CHT_CHAT_IDENTITY.getCode(), "sub_app_chat_identity", new Version(1, 0, 0),Platforms.CHAT_PLATFORM, AppsStatus.ALPHA);
+        installedSubApp = new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp(SubApps.CHT_CHAT_IDENTITY, null, null, "public_key_cht_identity_chat", "Chat Identity", SubAppsPublicKeys.CHT_CHAT_IDENTITY.getCode(), "public_key_cht_identity_chat", new Version(1, 0, 0),Platforms.CHAT_PLATFORM, AppsStatus.ALPHA);
         lstInstalledSubApps.put(installedSubApp.getAppPublicKey(), installedSubApp);
         installedSubApp = new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp(SubApps.CHT_COMMUNITY, null, null, "sub_app_cht_community", "Chat Community", SubAppsPublicKeys.CHT_COMMUNITY.getCode(), "sub_app_cht_community", new Version(1, 0, 0),Platforms.CHAT_PLATFORM, AppsStatus.ALPHA);
         lstInstalledSubApps.put(installedSubApp.getAppPublicKey(), installedSubApp);
@@ -83,7 +83,7 @@ public class SubAppManagerProvisory implements SubAppManager {
                 SubAppsPublicKeys.ART_ARTIST_IDENTITY.getCode(),
                 "sub_app_art_artist_identity", new Version(1, 0, 0),
                 Platforms.ART_PLATFORM,
-                AppsStatus.ALPHA);
+                AppsStatus.DEV);
         lstInstalledSubApps.put(installedSubApp.getAppPublicKey(), installedSubApp);
         installedSubApp = new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp(
                 SubApps.ART_FAN_COMMUNITY,
@@ -95,11 +95,11 @@ public class SubAppManagerProvisory implements SubAppManager {
                 "sub_app_art_fan_community",
                 new Version(1, 0, 0),
                 Platforms.ART_PLATFORM,
-                AppsStatus.ALPHA);
+                AppsStatus.DEV);
         lstInstalledSubApps.put(installedSubApp.getAppPublicKey(), installedSubApp);
         installedSubApp = new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp(
                 SubApps.ART_FAN_COMMUNITY, null, null, "sub_app_art_fan_community", "Tonkenly", SubAppsPublicKeys.ART_FAN_COMMUNITY.getCode(), "sub_app_art_fan_community", new Version(1, 0, 0),Platforms.ART_PLATFORM,
-                AppsStatus.ALPHA);
+                AppsStatus.DEV);
         lstInstalledSubApps.put(installedSubApp.getAppPublicKey(), installedSubApp);
 
         installedSubApp = new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp(
@@ -111,7 +111,7 @@ public class SubAppManagerProvisory implements SubAppManager {
                 SubAppsPublicKeys.ART_MUSIC_PLAYER.getCode(),
                 "music_player_sub_app", new Version(1, 0, 0),
                 Platforms.ART_PLATFORM,
-                AppsStatus.ALPHA);
+                AppsStatus.DEV);
         lstInstalledSubApps.put(installedSubApp.getAppPublicKey(), installedSubApp);
 
         //TODO - Add Others SubApps
@@ -136,7 +136,7 @@ public class SubAppManagerProvisory implements SubAppManager {
     }
 
     @Override
-    public SettingsManager<AppManagerSettings> getSettingsManager() {
+    public SettingsManager<DesktopManagerSettings> getSettingsManager() {
         return null;
     }
 
