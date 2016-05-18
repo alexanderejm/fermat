@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         applicationId "org.fermat"
-        minSdkVersion 17
+        minSdkVersion 16
         targetSdkVersion 23
         versionCode 39
         versionName "0.71"
@@ -37,7 +37,7 @@ android {
     }
 
     dexOptions {
-        javaMaxHeapSize "2g"
+        javaMaxHeapSize "4g"
         incremental true
         jumboMode=true
         preDexLibraries = false
@@ -163,15 +163,14 @@ dependencies {
     //    compile files('src/main/libs/activation.jar')
     //    compile files('src/main/libs/additionnal.jar')
     //    compile files('src/main/libs/mail.jar')
-   // compile 'com.sun.mail:android-mail:1.5.5'
+    // compile 'com.sun.mail:android-mail:1.5.5'
     //compile 'com.sun.mail:android-activation:1.5.5'
     compile project(':horizontalscrollview')
     compile 'com.github.Bossyao168:StackOverView:9808f07dca'
     compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.github.Bossyao168:StackOverView:9808f07dca'
+    //compile 'com.github.Bossyao168:StackOverView:9808f07dca'
     //  compile project(':fermat-cht-android-sub-app-chat-identity-bitdubai')
-    compile project(':fermat-cht-android-sub-app-chat-identity-bitdubai')
-    compile project(':fermat-art-android-sub-app-artist-community-bitdubai')
-   // compile 'com.github.anrwatchdog:anrwatchdog:1.2.+'
+//    compile project(':fermat-cht-android-sub-app-chat-identity-bitdubai')
+    compile 'com.github.anrwatchdog:anrwatchdog:1.2.+'
 
 }
