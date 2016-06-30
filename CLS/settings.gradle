@@ -1,0 +1,33 @@
+/**
+ * Please, keep the elements ordered alphabetically.
+ * -Type (addon/android/plugin)
+ * -Layer name.
+ * -Name.
+ */
+
+include ':fermat-cls-api'
+project(':fermat-cls-api').projectDir = new File('CLS/library/api/fermat-cls-api')
+
+include ':fermat-cls-core'
+project(':fermat-cls-core').projectDir = new File('CLS/library/core/fermat-cls-core')
+
+//Android-sub-app-identity
+include ':fermat-cls-android-sub-app-publisher-identity-bitdubai'
+project(':fermat-cls-android-sub-app-publisher-identity-bitdubai').projectDir = new File('CLS/android/sub_app/fermat-cls-android-sub-app-publisher-identity-bitdubai')
+
+include ':fermat-cls-android-sub-app-reader-identity-bitdubai'
+project(':fermat-cls-android-sub-app-reader-identity-bitdubai').projectDir = new File('CLS/android/sub_app/fermat-cls-android-sub-app-reader-identity-bitdubai')
+
+//Identity
+include ':fermat-cls-plugin-identity-publisher-bitdubai'
+project(':fermat-cls-plugin-identity-publisher-bitdubai').projectDir = new File('CLS/plugin/identity/fermat-cls-plugin-identity-publisher-bitdubai')
+
+include ':fermat-cls-plugin-identity-reader-bitdubai'
+project(':fermat-cls-plugin-identity-reader-bitdubai').projectDir = new File('CLS/plugin/identity/fermat-cls-plugin-identity-reader-bitdubai')
+
+//Sub app module
+include ':fermat-cls-plugin-sub-app-module-publisher-identity-bitdubai'
+project(':fermat-cls-plugin-sub-app-module-publisher-identity-bitdubai').projectDir = new File('CLS/plugin/sub_app_module/fermat-cls-plugin-sub-app-module-publisher-identity-bitdubai')
+
+include ':fermat-cls-plugin-sub-app-module-reader-identity-bitdubai'
+project(':fermat-cls-plugin-sub-app-module-reader-identity-bitdubai').projectDir = new File('CLS/plugin/sub_app_module/fermat-cls-plugin-sub-app-module-reader-identity-bitdubai')

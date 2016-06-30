@@ -23,6 +23,7 @@ public enum Platforms implements FermatEnum {
     CURRENCY_EXCHANGE_RATE_PLATFORM     ("CER","Exchange"),
     CASH_PLATFORM                       ("CSH","Cash"),
     CHAT_PLATFORM                       ("CHT","Chat"),
+    CLASSIFIED                          ("CLS","Classified"),
     CRYPTO_COMMODITY_MONEY              ("CCM","Crypto Commodity"),
     CRYPTO_CURRENCY_PLATFORM            ("CCP","Crypto Currencies"),
     DIGITAL_ASSET_PLATFORM              ("DAP","Digital Assets"),
