@@ -1,0 +1,52 @@
+package com.bitdubai.fermat_cls_api.layer.identity.publisher.exceptions;
+
+import com.bitdubai.fermat_cls_api.all_definition.exceptions.CLSException;
+
+/**
+ * Created by Alexander Jimenez (alex_jimenez76@hotmail.com) on 6/30/16.
+ */
+public class CantUpdatePublisherIdentityException extends CLSException {
+
+    public static final String DEFAULT_MESSAGE = "CANNOT UPDATE PUBLISHER IDENTITY";
+
+    public CantUpdatePublisherIdentityException(
+            final String message,
+            final Exception cause,
+            final String context,
+            final String possibleReason) {
+        super(message, cause, context, possibleReason);
+    }
+
+    public CantUpdatePublisherIdentityException(
+            Exception cause,
+            String context,
+            String possibleReason) {
+        super(DEFAULT_MESSAGE , cause, context, possibleReason);
+    }
+
+    public CantUpdatePublisherIdentityException(
+            String message,
+            String context,
+            String possibleReason) {
+        super(message , null, context, possibleReason);
+    }
+
+    public CantUpdatePublisherIdentityException(
+            final String message,
+            final Exception cause) {
+        this(message, cause, "", "");
+    }
+
+    public CantUpdatePublisherIdentityException(final String message) {
+        this(message, null);
+    }
+
+    public CantUpdatePublisherIdentityException(final Exception exception) {
+        this(exception.getMessage());
+        setStackTrace(exception.getStackTrace());
+    }
+
+    public CantUpdatePublisherIdentityException() {
+        this(DEFAULT_MESSAGE);
+    }
+}
