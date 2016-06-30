@@ -30,18 +30,16 @@ import com.bitdubai.fermat_api.layer.all_definition.enums.Engine;
 import com.bitdubai.fermat_api.layer.all_definition.enums.UISource;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Wallets;
 import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
-
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.LossProtectedWalletSettings;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.interfaces.LossProtectedWallet;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.interfaces.LossProtectedWalletIntraUserActor;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedUIExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.BitcoinWalletConstants;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedUIExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
+import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.LossProtectedWalletConstants;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.adapters.AddConnectionsAdapter;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.popup.ConnectionWithCommunityDialog;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.utils.AddConnectionCallback;
-
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.session.LossProtectedWalletSession;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 
@@ -49,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Matias Furszyfer
+ * Created by Natalia Cortez
  */
 public class AddConnectionFragment extends FermatWalletListFragment<LossProtectedWalletIntraUserActor>
         implements FermatListItemListeners<LossProtectedWalletIntraUserActor>,AddConnectionCallback {
@@ -278,7 +276,7 @@ public class AddConnectionFragment extends FermatWalletListFragment<LossProtecte
         super.onCreateOptionsMenu(menu, inflater);
         this.menu = menu;
         if(isMenuVisible){
-            menu.add(0, BitcoinWalletConstants.IC_ACTION_ADD_CONNECTION, 0, "ADD")
+            menu.add(0, LossProtectedWalletConstants.IC_ACTION_ADD_CONNECTION, 0, "ADD")
                     .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         }
 
@@ -291,7 +289,7 @@ public class AddConnectionFragment extends FermatWalletListFragment<LossProtecte
 
             int id = item.getItemId();
 
-            if(id == BitcoinWalletConstants.IC_ACTION_ADD_CONNECTION){
+            if(id == LossProtectedWalletConstants.IC_ACTION_ADD_CONNECTION){
                 for(LossProtectedWalletIntraUserActor cryptoWalletIntraUserActor : intraUserInformationList){
                     try {
                         if (cryptoWalletIntraUserActor.isSelected()) {
@@ -337,16 +335,7 @@ public class AddConnectionFragment extends FermatWalletListFragment<LossProtecte
                         MAX_USER_SHOW,
                         offset);
             }
-//            if(data.isEmpty()){
-//                if(hnadler!=null) {
-//                    hnadler.post(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            new ConnectionWithCommunityDialog(getActivity(), referenceWalletSession, null).show();
-//                        }
-//                    });
-//                }
-//            }
+
         }
         catch(Exception e){
             Toast.makeText(getActivity().getApplicationContext(), "Oooops! recovering from system error. Get Intra User List", Toast.LENGTH_SHORT).show();
@@ -396,7 +385,7 @@ public class AddConnectionFragment extends FermatWalletListFragment<LossProtecte
         connectionPickCounter++;
         if(!isMenuVisible){
             isMenuVisible = true;
-            menu.add(0, BitcoinWalletConstants.IC_ACTION_ADD_CONNECTION, 0, "ADD")
+            menu.add(0, LossProtectedWalletConstants.IC_ACTION_ADD_CONNECTION, 0, "ADD")
                     .setIcon(R.drawable.button_add_connection)
                     .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         }

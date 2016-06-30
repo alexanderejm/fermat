@@ -4,11 +4,13 @@ package com.bitdubai.fermat_android_api.layer.definition.wallet;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
 import android.widget.RelativeLayout;
 
 import com.bitdubai.fermat_android_api.engine.PaintActivityFeatures;
@@ -18,12 +20,17 @@ import com.bitdubai.fermat_android_api.layer.definition.wallet.interfaces.SubApp
 import com.bitdubai.fermat_android_api.layer.definition.wallet.interfaces.WizardConfiguration;
 import com.bitdubai.fermat_android_api.ui.inflater.ViewInflater;
 import com.bitdubai.fermat_android_api.ui.interfaces.FermatWizardActivity;
-import com.bitdubai.fermat_api.AndroidCoreManager;
 import com.bitdubai.fermat_api.FermatStates;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.enums.NetworkStatus;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.exceptions.CantGetBitcoinNetworkStatusException;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.exceptions.CantGetCommunicationNetworkStatusException;
+import com.bitdubai.fermat_api.layer.all_definition.enums.BlockchainNetworkType;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Engine;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Activities;
+import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.interfaces.DesktopAppSelector;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.interfaces.FermatRuntime;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.interfaces.FermatScreenSwapper;
+import com.bitdubai.fermat_api.layer.dmp_module.InstalledApp;
 import com.bitdubai.fermat_api.layer.osa_android.broadcaster.FermatBundle;
 import com.bitdubai.fermat_api.layer.pip_engine.interfaces.ResourceProviderManager;
 
@@ -49,6 +56,10 @@ public abstract class AbstractFermatFragment<S extends FermatSession,R extends R
      */
     protected ViewInflater viewInflater;
     private WizardConfiguration context;
+
+    enum ScreenSize{
+        LARGE,NORMAL, UNDEFINED, SMALL
+    }
 
 
     @Override
@@ -120,6 +131,24 @@ public abstract class AbstractFermatFragment<S extends FermatSession,R extends R
     }
 
 
+    protected void selectApp(InstalledApp installedSubApp) throws Exception {
+        destroy();
+        getDesktopAppSelector().selectApp(installedSubApp);
+    }
+
+    private DesktopAppSelector getDesktopAppSelector() throws Exception {
+        if(getActivity() instanceof DesktopAppSelector){
+            return (DesktopAppSelector) getActivity();
+        }
+        throw new Exception("big problem occur");
+    }
+
+    /**
+     * Method used to go to home desktop
+     */
+    protected void home(){
+        ((FermatActivityManager)getActivity()).goHome();
+    }
 
 
     /**
@@ -214,6 +243,10 @@ public abstract class AbstractFermatFragment<S extends FermatSession,R extends R
         ((FermatActivityManager)getActivity()).reportError(userTo);
     }
 
+    protected void sendMail(String userTo, String bodyText) throws Exception {
+        ((FermatActivityManager)getActivity()).sendMailExternal(userTo,bodyText);
+    }
+
     protected final void onBack(String activityCodeBack){
         getFermatScreenSwapper().onControlledActivityBack(activityCodeBack);
     }
@@ -226,8 +259,20 @@ public abstract class AbstractFermatFragment<S extends FermatSession,R extends R
         return ((FermatActivityManager)getActivity()).getRuntimeManager();
     }
 
-    protected final AndroidCoreManager getFermatState(){
-        return ((FermatStates)getActivity()).getFermatStates();
+    protected final FermatActivityManager getFermatActivityManager(){
+        return ((FermatActivityManager)getActivity());
+    }
+
+    protected final NetworkStatus getFermatNetworkStatus() throws CantGetCommunicationNetworkStatusException {
+        return getFermatStates().getFermatNetworkStatus();
+    }
+
+    protected final NetworkStatus getBitcoinNetworkStatus(BlockchainNetworkType blockchainNetworkType) throws CantGetBitcoinNetworkStatusException {
+        return getFermatStates().getBitcoinNetworkStatus(blockchainNetworkType);
+    }
+
+    protected final FermatStates getFermatStates(){
+        return  ((FermatStates)getActivity());
     }
 
 
@@ -282,5 +327,45 @@ public abstract class AbstractFermatFragment<S extends FermatSession,R extends R
     }
 
 
+    /**
+     *  This method will be called when the user open the drawer if exist
+     */
+    public void onDrawerOpen() {
 
+    }
+
+    /**
+     *  This method will be called when the user close the drawer if exist
+     */
+    public void onDrawerClose() {
+
+    }
+
+    public void onDrawerSlide(View drawerView, float offset) {
+
+    }
+
+
+    private ScreenSize getScreenSize(){
+        int screenSize = getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK;
+        ScreenSize screenSizeType = null;
+        switch(screenSize) {
+            case Configuration.SCREENLAYOUT_SIZE_LARGE:
+                screenSizeType = ScreenSize.LARGE;
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_NORMAL:
+                screenSizeType = ScreenSize.NORMAL;
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_SMALL:
+                screenSizeType = ScreenSize.SMALL;
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_UNDEFINED:
+                screenSizeType = ScreenSize.UNDEFINED;
+                break;
+            default:
+                screenSizeType = ScreenSize.UNDEFINED;
+        }
+        return screenSizeType;
+    }
 }

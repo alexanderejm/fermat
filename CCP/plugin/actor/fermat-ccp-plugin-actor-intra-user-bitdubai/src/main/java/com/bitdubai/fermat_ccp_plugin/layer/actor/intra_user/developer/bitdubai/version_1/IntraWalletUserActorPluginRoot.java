@@ -66,8 +66,8 @@ import com.bitdubai.fermat_ccp_plugin.layer.actor.intra_user.developer.bitdubai.
 import com.bitdubai.fermat_ccp_plugin.layer.actor.intra_user.developer.bitdubai.version_1.exceptions.CantUpdateConnectionException;
 import com.bitdubai.fermat_ccp_plugin.layer.actor.intra_user.developer.bitdubai.version_1.structure.IntraUserActorRecord;
 import com.bitdubai.fermat_pip_api.layer.actor.exception.CantGetLogTool;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 
@@ -710,7 +710,7 @@ public class IntraWalletUserActorPluginRoot extends AbstractPlugin implements
 //                        eventManager.raiseEvent(eventManager.getNewEvent(EventType.INTRA_USER_CONNECTION_ACCEPTED_NOTIFICATION));
                         //notify android view
                         broadcaster.publish(BroadcasterType.UPDATE_VIEW,"ACCEPTED_CONEXION");
-                        broadcaster.publish(BroadcasterType.NOTIFICATION_SERVICE, SubAppsPublicKeys.CCP_COMMUNITY.getCode(),"CONNECTIONACCEPT_" + intraUserToConnectPublicKey);
+                        broadcaster.publish(BroadcasterType.NOTIFICATION_SERVICE, SubAppsPublicKeys.CCP_COMMUNITY.getCode(),"CONNECTIONACCEPT_" + intraUserSendingPublicKey);
 
                         break;
                     case DISCONNECTED:

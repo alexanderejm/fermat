@@ -16,8 +16,6 @@ import java.io.Serializable;
  */
 public class PluginVersionReference implements Serializable {
 
-    private static final String KEY_SEPARATOR = "+";
-
     private static final int HASH_PRIME_NUMBER_PRODUCT = 1523;
     private static final int HASH_PRIME_NUMBER_ADD = 2819;
 
@@ -72,6 +70,24 @@ public class PluginVersionReference implements Serializable {
         return version.equals(that.version) &&
                 ((pluginDeveloperReference == null && that.getPluginDeveloperReference() == null) || (pluginDeveloperReference != null && pluginDeveloperReference.equals(that.getPluginDeveloperReference())));
     }
+
+    public Platforms getPlatform(){
+        return pluginDeveloperReference.getPluginReference().getLayerReference().getPlatformReference().getPlatform();
+    }
+
+    public Layers getLayers(){
+        return pluginDeveloperReference.getPluginReference().getLayerReference().getLayer();
+    }
+
+    public FermatPluginsEnum getPlugins(){
+        return pluginDeveloperReference.getPluginReference().getPlugin();
+    }
+
+    public Developers getDeveloper(){
+        return pluginDeveloperReference.getDeveloper();
+
+    }
+
 
     @Override
     public final int hashCode() {

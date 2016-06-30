@@ -17,8 +17,8 @@ import android.widget.TextView;
 import com.bitbudai.fermat_cht_android_sub_app_chat_bitdubai.models.ContactList;
 import com.bitdubai.fermat_api.layer.dmp_engine.sub_app_runtime.enums.SubApps;
 import com.bitdubai.fermat_cht_android_sub_app_chat_bitdubai.R;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedSubAppExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedSubAppExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,6 @@ import java.util.UUID;
  */
 
 public class ConnectionListAdapter extends ArrayAdapter<String> {//public class ChatListAdapter extends FermatAdapter<ChatsList, ChatHolder> {//ChatFactory
-
 
     List<ContactList> contactsList = new ArrayList<>();
     ArrayList<String> contactinfo=new ArrayList<String>();

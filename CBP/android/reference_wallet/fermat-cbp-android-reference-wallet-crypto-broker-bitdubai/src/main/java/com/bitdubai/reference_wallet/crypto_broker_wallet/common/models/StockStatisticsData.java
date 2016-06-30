@@ -7,9 +7,9 @@ import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.W
 import com.bitdubai.fermat_api.layer.world.interfaces.Currency;
 import com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.interfaces.CryptoBrokerStockTransaction;
 import com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.interfaces.setting.CryptoBrokerWalletAssociatedSetting;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletModuleManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.reference_wallet.crypto_broker_wallet.session.CryptoBrokerWalletSession;
 
 import java.util.ArrayList;
@@ -25,16 +25,21 @@ public class StockStatisticsData {
     public StockStatisticsData(CryptoBrokerWalletAssociatedSetting associatedWallet, CryptoBrokerWalletSession session) {
 
         Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR, 0);
+
+        stockTransactions = null;
+
         ErrorManager errorManager = session.getErrorManager();
         try {
             final String walletPublicKey = session.getAppPublicKey();
-            final CryptoBrokerWalletManager walletManager = session.getModuleManager().getCryptoBrokerWallet(walletPublicKey);
+            final CryptoBrokerWalletModuleManager walletManager = session.getModuleManager();
 
             currency = associatedWallet.getMerchandise();
 
             balance = walletManager.getAvailableBalance(currency, walletPublicKey);
 
-            final int offset = 30;
+            final int offset = 31;
             stockTransactions = walletManager.getStockHistory(
                     associatedWallet.getMerchandise(),
                     associatedWallet.getMoneyType(),
@@ -46,8 +51,7 @@ public class StockStatisticsData {
             if (errorManager == null)
                 Log.e("StockStatisticsData", e.getMessage(), e);
             else
-                errorManager.reportUnexpectedWalletException(Wallets.CBP_CRYPTO_BROKER_WALLET,
-                        UnexpectedWalletExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
+                errorManager.reportUnexpectedWalletException(Wallets.CBP_CRYPTO_BROKER_WALLET, UnexpectedWalletExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
         }
     }
 

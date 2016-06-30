@@ -1,5 +1,11 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 <!--android:showAsAction="ifRoom"-->
+    <!--item
+        android:id="@+id/menu_block_contact"
+        android:title="@string/menu_block_contact"
+        app:showAsAction="collapseActionView"
+        />
     <item
         android:id="@+id/menu_edit_contact"
         android:title="@string/menu_edit_contact"
@@ -9,6 +15,6 @@
         android:id="@+id/menu_del_contact"
         android:title="Delete Contact"
         android:icon="@drawable/ic_action_edit"
-        />
+        />-->
 
 </menu>

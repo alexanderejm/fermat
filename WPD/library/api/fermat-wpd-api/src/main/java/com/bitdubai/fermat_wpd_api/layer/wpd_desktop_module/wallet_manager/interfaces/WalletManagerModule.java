@@ -2,6 +2,10 @@ package com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.inte
 
 
 import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.FermatManager;
+import com.bitdubai.fermat_api.layer.all_definition.enums.Layers;
+import com.bitdubai.fermat_api.layer.all_definition.enums.Platforms;
+import com.bitdubai.fermat_api.layer.all_definition.enums.Plugins;
+import com.bitdubai.fermat_api.layer.core.PluginInfo;
 import com.bitdubai.fermat_api.layer.dmp_module.wallet_manager.InstalledWallet;
 import com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.exceptions.NewWalletCreationFailedException;
 import com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.exceptions.WalletRemovalFailedException;
@@ -17,6 +21,7 @@ import java.util.UUID;
  *
  * @author Ezequiel Postan (ezequiel.postan@gmail.com)
  */
+@PluginInfo(createdBy = "", maintainerMail = "", platform = Platforms.CRYPTO_CURRENCY_PLATFORM, layer = Layers.DESKTOP_MODULE, plugin = Plugins.WALLET_MANAGER)
 public interface WalletManagerModule extends FermatManager {
 
     /**
@@ -31,7 +36,7 @@ public interface WalletManagerModule extends FermatManager {
     /**
      * This method returns the list of installed wallets in the device
      *
-     * @return A list with the installed wallets information
+     * @return A list with the installed wallets informationt
      * @throws WalletsListFailedToLoadException
      */
     List<InstalledWallet> getInstalledWallets() throws WalletsListFailedToLoadException;

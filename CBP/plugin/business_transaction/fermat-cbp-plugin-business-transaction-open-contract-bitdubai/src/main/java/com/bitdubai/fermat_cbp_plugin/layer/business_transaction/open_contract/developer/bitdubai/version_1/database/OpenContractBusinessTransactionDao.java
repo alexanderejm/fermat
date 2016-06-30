@@ -25,8 +25,8 @@ import com.bitdubai.fermat_cbp_api.layer.network_service.transaction_transmissio
 import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.open_contract.developer.bitdubai.version_1.exceptions.CannotFindKeyValueException;
 import com.bitdubai.fermat_cbp_api.layer.business_transaction.common.exceptions.CantGetContractListException;
 import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.open_contract.developer.bitdubai.version_1.exceptions.CantInitializeOpenContractBusinessTransactionDatabaseException;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -208,7 +208,7 @@ public class OpenContractBusinessTransactionDao {
     public boolean isContractHashSentConfirmation(String contractHash) throws UnexpectedResultReturnedFromDatabaseException {
         try{
             ContractTransactionStatus contractTransactionStatus=getContractTransactionStatus(contractHash);
-            return contractTransactionStatus.getCode().equals(ContractTransactionStatus.CHECKING_HASH.getCode());
+            return contractTransactionStatus.getCode().equals(ContractTransactionStatus.PENDING_CONFIRMATION.getCode());
         }catch (Exception e){
             errorManager.reportUnexpectedPluginException(
                     Plugins.OPEN_CONTRACT,
@@ -457,6 +457,39 @@ public class OpenContractBusinessTransactionDao {
             throw new UnexpectedResultReturnedFromDatabaseException(e,"Unexpected Result","Check the cause");
         }
     }
+
+    public List<String> getPendingToAskConfirmContractHash() throws UnexpectedResultReturnedFromDatabaseException, CantGetContractListException {
+        try{
+            return getStringList(
+                    ContractTransactionStatus.PENDING_RESPONSE.getCode(),
+                    OpenContractBusinessTransactionDatabaseConstants.OPEN_CONTRACT_TRANSACTION_STATUS_COLUMN_NAME,
+                    OpenContractBusinessTransactionDatabaseConstants.OPEN_CONTRACT_CONTRACT_HASH_COLUMN_NAME);
+        }catch (Exception e){
+            errorManager.reportUnexpectedPluginException(
+                    Plugins.OPEN_CONTRACT,
+                    UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN,
+                    e);
+            throw new UnexpectedResultReturnedFromDatabaseException(e,"Unexpected Result","Check the cause");
+        }
+    }
+
+//    public boolean getContractHash() throws UnexpectedResultReturnedFromDatabaseException, CantGetContractListException {
+//        try{
+//            List<String> list=new ArrayList<>();
+//            list = getStringList(
+//                    ContractTransactionStatus.PENDING_RESPONSE.getCode(),
+//                    OpenContractBusinessTransactionDatabaseConstants.OPEN_CONTRACT_TRANSACTION_STATUS_COLUMN_NAME,
+//                    OpenContractBusinessTransactionDatabaseConstants.OPEN_CONTRACT_CONTRACT_HASH_COLUMN_NAME);
+//
+//
+//        }catch (Exception e){
+//            errorManager.reportUnexpectedPluginException(
+//                    Plugins.OPEN_CONTRACT,
+//                    UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN,
+//                    e);
+//            throw new UnexpectedResultReturnedFromDatabaseException(e,"Unexpected Result","Check the cause");
+//        }
+//    }
 
     /**
      * This method returns a List with the parameter in the arguments.

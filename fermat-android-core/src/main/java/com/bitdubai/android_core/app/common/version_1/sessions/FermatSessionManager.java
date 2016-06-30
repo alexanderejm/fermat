@@ -4,13 +4,13 @@ import com.bitdubai.fermat_android_api.layer.definition.wallet.interfaces.AppCon
 import com.bitdubai.fermat_android_api.layer.definition.wallet.interfaces.FermatSession;
 import com.bitdubai.fermat_api.layer.all_definition.runtime.FermatApp;
 import com.bitdubai.fermat_api.layer.modules.interfaces.ModuleManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by mati on 2016.02.22..
+ * Created by Matias Furszyfer on 2016.02.22..
  */
 public class FermatSessionManager {
 

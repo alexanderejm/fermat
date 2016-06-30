@@ -9,9 +9,9 @@ import com.bitdubai.fermat_api.layer.osa_android.file_system.PluginBinaryFile;
 import com.bitdubai.fermat_api.layer.osa_android.file_system.PluginFileSystem;
 import com.bitdubai.fermat_api.layer.osa_android.file_system.exceptions.CantCreateFileException;
 import com.bitdubai.fermat_api.layer.osa_android.file_system.exceptions.CantPersistFileException;
+import com.bitdubai.fermat_art_api.all_definition.enums.ArtExternalPlatform;
 import com.bitdubai.fermat_art_api.all_definition.enums.ArtistAcceptConnectionsType;
 import com.bitdubai.fermat_art_api.all_definition.enums.ExposureLevel;
-import com.bitdubai.fermat_art_api.all_definition.enums.ExternalPlatform;
 import com.bitdubai.fermat_art_api.layer.identity.artist.interfaces.Artist;
 import com.bitdubai.fermat_art_plugin.layer.identity.artist.developer.bitdubai.version_1.ArtistIdentityPluginRoot;
 
@@ -25,11 +25,13 @@ public class ArtistIdentityImp implements DealsWithPluginFileSystem, DealsWithPl
     private String alias;
     private String publicKey;
     private byte[] imageProfile;
-    private String externalUserName;
-    private String externalAccessToken;
-    private ExternalPlatform externalPlatform;
+    private UUID externalIdentityID;
+    private ArtExternalPlatform externalPlatform;
+    private String externalUsername;
     private ExposureLevel exposureLevel;
     private ArtistAcceptConnectionsType artistAcceptConnectionsType;
+
+
     /**
      * DealsWithPluginFileSystem Interface member variables.
      */
@@ -44,101 +46,99 @@ public class ArtistIdentityImp implements DealsWithPluginFileSystem, DealsWithPl
      *
      * @param alias
      * @param publicKey
-     * @param externalUserName
-     * @param externalAccessToken
-     * @param externalPlatform
-     * @param exposureLevel
-     * @param artistAcceptConnectionsType
+     * @param externalIdentityID
      * @param pluginFileSystem
      * @param pluginId
      */
-    public ArtistIdentityImp(String alias, String publicKey, String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform, ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType, PluginFileSystem pluginFileSystem, UUID pluginId) {
+    public ArtistIdentityImp(
+            String alias,
+            String publicKey,
+            UUID externalIdentityID,
+            PluginFileSystem pluginFileSystem,
+            UUID pluginId,
+            ArtExternalPlatform artExternalPlatform,
+            String externalUsername) {
         this.alias = alias;
         this.publicKey = publicKey;
-        this.externalUserName = externalUserName;
-        this.externalAccessToken = externalAccessToken;
-        this.externalPlatform = externalPlatform;
-        this.exposureLevel = exposureLevel;
-        this.artistAcceptConnectionsType = artistAcceptConnectionsType;
+        this.externalIdentityID = externalIdentityID;
         this.pluginFileSystem = pluginFileSystem;
         this.pluginId = pluginId;
+        this.externalPlatform = artExternalPlatform;
+        this.externalUsername = externalUsername;
     }
 
     /**
-     *
      * @param alias
      * @param publicKey
      * @param imageProfile
-     * @param externalUserName
-     * @param externalAccessToken
-     * @param externalPlatform
-     * @param exposureLevel
-     * @param artistAcceptConnectionsType
-     */
-    public ArtistIdentityImp(String alias, String publicKey, byte[] imageProfile, String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform, ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) {
-        this.alias = alias;
-        this.publicKey = publicKey;
-        this.imageProfile = imageProfile;
-        this.externalUserName = externalUserName;
-        this.externalAccessToken = externalAccessToken;
-        this.externalPlatform = externalPlatform;
-        this.exposureLevel = exposureLevel;
-        this.artistAcceptConnectionsType = artistAcceptConnectionsType;
-    }
-
-    /**
-     *
-     * @param alias
-     * @param publicKey
-     * @param imageProfile
-     * @param externalUserName
-     * @param externalAccessToken
-     * @param externalPlatform
-     * @param exposureLevel
-     * @param artistAcceptConnectionsType
+     * @param externalIdentityID
      * @param pluginFileSystem
      * @param pluginId
+     * @param artExternalPlatform
+     * @param exposureLevel
+     * @param acceptConnectionsType
+     * @param externalUsername
      */
-    public ArtistIdentityImp(String alias, String publicKey, byte[] imageProfile, String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform, ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType, PluginFileSystem pluginFileSystem, UUID pluginId) {
+    public ArtistIdentityImp(
+            String alias,
+            String publicKey,
+            byte[] imageProfile,
+            UUID externalIdentityID,
+            PluginFileSystem pluginFileSystem,
+            UUID pluginId,
+            ArtExternalPlatform artExternalPlatform, ExposureLevel exposureLevel, ArtistAcceptConnectionsType acceptConnectionsType, String externalUsername) {
         this.alias = alias;
         this.publicKey = publicKey;
         this.imageProfile = imageProfile;
-        this.externalUserName = externalUserName;
-        this.externalAccessToken = externalAccessToken;
-        this.externalPlatform = externalPlatform;
+        this.externalIdentityID = externalIdentityID;
+        this.pluginFileSystem = pluginFileSystem;
+        this.pluginId = pluginId;
+        this.externalPlatform = artExternalPlatform;
+        this.externalUsername = externalUsername;
         this.exposureLevel = exposureLevel;
-        this.artistAcceptConnectionsType = artistAcceptConnectionsType;
-        this.pluginFileSystem = pluginFileSystem;
-        this.pluginId = pluginId;
+        this.artistAcceptConnectionsType = acceptConnectionsType;
     }
 
-    /**
-     *
-     * @param alias
-     * @param publicKey
-     * @param imageProfile
-     * @param pluginFileSystem
-     * @param pluginId
-     */
-    public ArtistIdentityImp(String alias, String publicKey, byte[] imageProfile, PluginFileSystem pluginFileSystem, UUID pluginId) {
-        this.alias = alias;
+    public ArtistIdentityImp(
+            String publicKey,
+            byte[] imageProfile,
+            String alias,
+            UUID externalIdentityID,
+            ArtExternalPlatform externalPlatform,
+            String externalUsername) {
         this.publicKey = publicKey;
         this.imageProfile = imageProfile;
-        this.pluginFileSystem = pluginFileSystem;
-        this.pluginId = pluginId;
+        this.alias = alias;
+        this.externalIdentityID = externalIdentityID;
+        this.externalPlatform = externalPlatform;
+        this.externalUsername = externalUsername;
     }
-
-    /**
-     * DealWithPluginFileSystem Interface implementation.
-     */
 
     @Override
-    public String getAlias() {
-        return alias;
+    public ExposureLevel getExposureLevel() {
+        return exposureLevel;
+    }
+
+    public void setExposureLevel(ExposureLevel exposureLevel) {
+        this.exposureLevel = exposureLevel;
+    }
+
+    @Override
+    public ArtistAcceptConnectionsType getArtistAcceptConnectionsType() {
+        return artistAcceptConnectionsType;
+    }
+
+    public void setArtistAcceptConnectionsType(ArtistAcceptConnectionsType artistAcceptConnectionsType) {
+        this.artistAcceptConnectionsType = artistAcceptConnectionsType;
     }
 
     public void setAlias(String alias) {
         this.alias = alias;
+    }
+
+    @Override
+    public String getAlias() {
+        return this.alias;
     }
 
     @Override
@@ -176,54 +176,25 @@ public class ArtistIdentityImp implements DealsWithPluginFileSystem, DealsWithPl
     }
 
     @Override
-    public String getExternalUsername() {
-        return externalUserName;
+    public ArtExternalPlatform getExternalPlatform() {
+        return externalPlatform;
     }
 
-    @Override
-    public String getExternalAccesToken() {
-        return externalAccessToken;
+    public void setExternalPlatform(ArtExternalPlatform externalPlatform) {
+        this.externalPlatform = externalPlatform;
     }
 
     public void setPublicKey(String publicKey) {
         this.publicKey = publicKey;
     }
 
-
-    public void setExternalUserName(String externalUserName) {
-        this.externalUserName = externalUserName;
-    }
-
-
-    public void setExternalAccessToken(String externalAccessToken) {
-        this.externalAccessToken = externalAccessToken;
-    }
-
     @Override
-    public ExternalPlatform getExternalPlatform() {
-        return externalPlatform;
+    public UUID getExternalIdentityID() {
+        return externalIdentityID;
     }
 
-    public void setExternalPlatform(ExternalPlatform externalPlatform) {
-        this.externalPlatform = externalPlatform;
-    }
-
-    @Override
-    public ExposureLevel getExposureLevel() {
-        return exposureLevel;
-    }
-
-    public void setExposureLevel(ExposureLevel exposureLevel) {
-        this.exposureLevel = exposureLevel;
-    }
-
-    @Override
-    public ArtistAcceptConnectionsType getArtistAcceptConnectionsType() {
-        return artistAcceptConnectionsType;
-    }
-
-    public void setArtistAcceptConnectionsType(ArtistAcceptConnectionsType artistAcceptConnectionsType) {
-        this.artistAcceptConnectionsType = artistAcceptConnectionsType;
+    public void setExternalIdentityID(UUID externalIdentityID) {
+        this.externalIdentityID = externalIdentityID;
     }
 
     @Override
@@ -234,5 +205,10 @@ public class ArtistIdentityImp implements DealsWithPluginFileSystem, DealsWithPl
     @Override
     public void setPluginId(UUID pluginId) {
         this.pluginId = pluginId;
+    }
+
+    @Override
+    public String getExternalUsername() {
+        return externalUsername;
     }
 }

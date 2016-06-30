@@ -16,11 +16,11 @@ public class ArtistIdentityDatabaseConstants {
     public static final String ARTIST_IDENTITY_PUBLIC_KEY_COLUMN_NAME                   = "public_key";
     public static final String ARTIST_IDENTITY_DEVICE_USER_PUBLIC_KEY_COLUMN_NAME       = "device_user_public_key";
     public static final String ARTIST_IDENTITY_ALIAS_COLUMN_NAME                        = "alias";
-    public static final String ARTIST_IDENTITY_EXTERNAL_USER_NAME_COLUMN_NAME           = "external_user_name";
-    public static final String ARTIST_IDENTITY_EXTERNAL_ACCESS_TOKEN_COLUMN_NAME        = "external_access_token";
+    public static final String ARTIST_IDENTITY_EXTERNAL_IDENTITY_ID_COLUMN_NAME         = "external_identity_id";
     public static final String ARTIST_IDENTITY_EXTERNAL_PLATFORM_COLUMN_NAME            = "external_platform";
-    public static final String ARTIST_IDENTITY_EXPOSURE_LEVEL_COLUMN_NAME               = "external_exposure_level";
-    public static final String ARTIST_IDENTITY_ACEEPTS_CONNECTIONS_TYPE_COLUMN_NAME     = "external_accepts_connections_type";
+    public static final String ARTIST_IDENTITY_EXTERNAL_USERNAME_COLUMN_NAME            = "external_username";
+    public static final String ARTIST_IDENTITY_EXPOSURE_LEVEL_COLUMN_NAME               = "exposure_level";
+    public static final String ARTIST_IDENTITY_ACCEPT_CONNECTIONS_TYPE_COLUMN_NAME      = "connections_type";
 
     public static final String ARTIST_IDENTITY_FIRST_KEY_COLUMN                         = ARTIST_IDENTITY_PUBLIC_KEY_COLUMN_NAME;
 

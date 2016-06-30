@@ -12,9 +12,11 @@ import com.bitdubai.fermat_cbp_api.all_definition.enums.BalanceType;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.MoneyType;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.TransactionStatusRestockDestock;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.TransactionType;
+import com.bitdubai.fermat_cbp_api.all_definition.wallet.StockBalance;
 import com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.exceptions.CantAddCreditCryptoBrokerWalletException;
 import com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.exceptions.CantGetStockCryptoBrokerWalletException;
 import com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.exceptions.CryptoBrokerWalletNotFoundException;
+import com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.interfaces.CryptoBrokerWallet;
 import com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.interfaces.CryptoBrokerWalletManager;
 import com.bitdubai.fermat_cbp_plugin.layer.stock_transactions.cash_money_restock.developer.bitdubai.version_1.exceptions.DatabaseOperationException;
 import com.bitdubai.fermat_cbp_plugin.layer.stock_transactions.cash_money_restock.developer.bitdubai.version_1.exceptions.MissingCashMoneyRestockDataException;
@@ -26,8 +28,8 @@ import com.bitdubai.fermat_csh_api.all_definition.enums.CashTransactionStatus;
 import com.bitdubai.fermat_csh_api.layer.csh_cash_money_transaction.hold.exceptions.CantCreateHoldTransactionException;
 import com.bitdubai.fermat_csh_api.layer.csh_cash_money_transaction.hold.exceptions.CantGetHoldTransactionException;
 import com.bitdubai.fermat_csh_api.layer.csh_cash_money_transaction.hold.interfaces.CashHoldTransactionManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.Date;
 import java.util.UUID;
@@ -203,7 +205,7 @@ public class StockTransactionsCashMoneyRestockMonitorAgent extends FermatAgent {
                         //Luego cambiar el status al registro de la transaccion leido
                         //Buscar el regsitro de la transaccion en manager de la wallet si lo consigue entonces le cambia el status de COMPLETED
                         WalletTransactionWrapper walletTransactionRecordBook = new WalletTransactionWrapper(
-                                cashMoneyTransaction.getTransactionId(),
+                                UUID.randomUUID(),
                                 cashMoneyTransaction.getFiatCurrency(),
                                 BalanceType.BOOK,
                                 TransactionType.CREDIT,
@@ -219,7 +221,7 @@ public class StockTransactionsCashMoneyRestockMonitorAgent extends FermatAgent {
                                 false);
 
                         WalletTransactionWrapper walletTransactionRecordAvailable = new WalletTransactionWrapper(
-                                cashMoneyTransaction.getTransactionId(),
+                                UUID.randomUUID(),
                                 cashMoneyTransaction.getFiatCurrency(),
                                 BalanceType.AVAILABLE,
                                 TransactionType.CREDIT,
@@ -234,14 +236,14 @@ public class StockTransactionsCashMoneyRestockMonitorAgent extends FermatAgent {
                                 cashMoneyTransaction.getOriginTransactionId(),
                                 false);
 
-                        //TODO:Solo para testear
-                        cashMoneyTransaction.setCbpWalletPublicKey("walletPublicKeyTest");
-                        cryptoBrokerWalletManager.loadCryptoBrokerWallet(cashMoneyTransaction.getCbpWalletPublicKey()).getStockBalance().credit(walletTransactionRecordBook, BalanceType.BOOK);
-                        cryptoBrokerWalletManager.loadCryptoBrokerWallet(cashMoneyTransaction.getCbpWalletPublicKey()).getStockBalance().credit(walletTransactionRecordAvailable, BalanceType.AVAILABLE);
+                        cashMoneyTransaction.setCbpWalletPublicKey("walletPublicKeyTest"); //TODO:Solo para testear
+                        final CryptoBrokerWallet cryptoBrokerWallet = cryptoBrokerWalletManager.loadCryptoBrokerWallet(cashMoneyTransaction.getCbpWalletPublicKey());
+                        final StockBalance stockBalance = cryptoBrokerWallet.getStockBalance();
+
+                        stockBalance.credit(walletTransactionRecordBook, BalanceType.BOOK);
+                        stockBalance.credit(walletTransactionRecordAvailable, BalanceType.AVAILABLE);
                         cashMoneyTransaction.setTransactionStatus(TransactionStatusRestockDestock.IN_WALLET);
                         stockTransactionCashMoneyRestockFactory.saveCashMoneyRestockTransactionData(cashMoneyTransaction);
-
-
 
                         break;
                     case IN_WALLET:

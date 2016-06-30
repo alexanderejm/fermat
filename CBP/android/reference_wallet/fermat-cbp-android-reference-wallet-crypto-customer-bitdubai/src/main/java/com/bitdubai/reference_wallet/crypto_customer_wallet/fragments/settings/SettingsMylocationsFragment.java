@@ -20,12 +20,9 @@ import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.A
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Wallets;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.NegotiationType;
 import com.bitdubai.fermat_cbp_api.all_definition.negotiation.NegotiationLocations;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletManager;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletModuleManager;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_customer.interfaces.CryptoCustomerWalletManager;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_customer.interfaces.CryptoCustomerWalletModuleManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.reference_wallet.crypto_customer_wallet.R;
 import com.bitdubai.reference_wallet.crypto_customer_wallet.common.adapters.LocationsAdapter;
 import com.bitdubai.reference_wallet.crypto_customer_wallet.common.adapters.SingleDeletableItemAdapter;
@@ -45,7 +42,7 @@ public class SettingsMylocationsFragment extends AbstractFermatFragment implemen
     private static final String TAG = "settingsMyLocations";
 
     // Data
-    private List<String> locationList;
+    private List<String> locationList = new ArrayList<>();
 
     // UI
     private RecyclerView recyclerView;
@@ -53,7 +50,7 @@ public class SettingsMylocationsFragment extends AbstractFermatFragment implemen
     private View emptyView;
 
     // Fermat Managers
-    private CryptoCustomerWalletManager walletManager;
+    private CryptoCustomerWalletModuleManager moduleManager;
     private ErrorManager errorManager;
 
 
@@ -66,24 +63,28 @@ public class SettingsMylocationsFragment extends AbstractFermatFragment implemen
         super.onCreate(savedInstanceState);
 
         try {
-            CryptoCustomerWalletModuleManager moduleManager = ((CryptoCustomerWalletSession) appSession).getModuleManager();
-            walletManager = moduleManager.getCryptoCustomerWallet(appSession.getAppPublicKey());
+            moduleManager = ((CryptoCustomerWalletSession) appSession).getModuleManager();
             errorManager = appSession.getErrorManager();
 
+
+            //Try to load appSession data
             Object data = appSession.getData(CryptoCustomerWalletSession.LOCATION_LIST);
-            if (data == null) {
-                locationList = new ArrayList<>();
+            if(data == null) {
+
+                //Get saved locations from settings
+                Collection<NegotiationLocations> listAux= moduleManager.getAllLocations(NegotiationType.PURCHASE);
+                for (NegotiationLocations locationAux : listAux){
+                    locationList.add(locationAux.getLocation());
+                }
+
+                //Save locations to appSession data
                 appSession.setData(CryptoCustomerWalletSession.LOCATION_LIST, locationList);
             } else {
                 locationList = (List<String>) data;
-                if (locationList.size()==0){
-                    Collection<NegotiationLocations> listAux= walletManager.getAllLocations(NegotiationType.PURCHASE);
-                    for (NegotiationLocations locationAux: listAux){
-                        locationList.add(locationAux.getLocation());
-                    }
-
-                }
             }
+
+
+            //Checking something here
             if(locationList.size()>0) {
                 int pos = locationList.size() - 1;
                 if (locationList.get(pos).equals("settings") || locationList.get(pos).equals("wizard")) {
@@ -174,10 +175,17 @@ public class SettingsMylocationsFragment extends AbstractFermatFragment implemen
             Toast.makeText(getActivity(), R.string.ccw_add_location_warning_msg, Toast.LENGTH_SHORT).show();
             return;
         }
-
         try {
+
+            //Save locationList to appSession
+            appSession.setData(CryptoCustomerWalletSession.LOCATION_LIST, locationList);
+
+            //Clear previous locations from settings
+            moduleManager.clearLocations();
+
+            //Save locations to settings
             for (String location : locationList) {
-                walletManager.createNewLocation(location, appSession.getAppPublicKey());
+                moduleManager.createNewLocation(location, appSession.getAppPublicKey());
             }
 
         } catch (FermatException ex) {

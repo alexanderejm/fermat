@@ -4,6 +4,7 @@ package com.bitdubai.sub_app.wallet_manager.fragment;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 
 import com.bitdubai.fermat_android_api.engine.DesktopHolderClickCallback;
 import com.bitdubai.fermat_android_api.layer.definition.wallet.AbstractDesktopFragment;
+import com.bitdubai.fermat_android_api.layer.definition.wallet.interfaces.FermatActivityManager;
 import com.bitdubai.fermat_android_api.ui.interfaces.FermatWorkerCallBack;
 import com.bitdubai.fermat_android_api.ui.util.FermatWorker;
 import com.bitdubai.fermat_api.AppsStatus;
@@ -29,20 +31,22 @@ import com.bitdubai.fermat_api.layer.all_definition.enums.Platforms;
 import com.bitdubai.fermat_api.layer.all_definition.enums.UISource;
 import com.bitdubai.fermat_api.layer.all_definition.enums.WalletCategory;
 import com.bitdubai.fermat_api.layer.all_definition.enums.WalletType;
+import com.bitdubai.fermat_api.layer.all_definition.enums.WalletsPublicKeys;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Activities;
+import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
 import com.bitdubai.fermat_api.layer.desktop.Item;
 import com.bitdubai.fermat_api.layer.dmp_engine.sub_app_runtime.enums.SubApps;
 import com.bitdubai.fermat_api.layer.dmp_middleware.wallet_manager.InstalledLanguage;
 import com.bitdubai.fermat_api.layer.dmp_middleware.wallet_manager.InstalledSkin;
+import com.bitdubai.fermat_api.layer.dmp_module.AppManagerSettings;
 import com.bitdubai.fermat_api.layer.dmp_module.wallet_manager.InstalledWallet;
 import com.bitdubai.fermat_api.layer.interface_objects.FermatFolder;
 import com.bitdubai.fermat_dmp.wallet_manager.R;
 import com.bitdubai.fermat_pip_api.layer.network_service.subapp_resources.SubAppResources;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedUIExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedUIExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.exceptions.WalletsListFailedToLoadException;
-import com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.interfaces.WalletManagerModule;
 import com.bitdubai.sub_app.wallet_manager.adapter.DesktopAdapter;
 import com.bitdubai.sub_app.wallet_manager.commons.EmptyItem;
 import com.bitdubai.sub_app.wallet_manager.commons.helpers.OnStartDragListener;
@@ -95,6 +99,9 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
 
     private boolean started=false;
     private List<Item> lstItemsWithIcon;
+    SettingsManager<AppManagerSettings> settingsSettingsManager;
+    AppManagerSettings appManagerSettings;
+    private Handler handler;
 
     /**
      * Create a new instance of this fragment
@@ -105,32 +112,14 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
         return new DesktopFragment();
     }
 
-    /**
-     * Provisory method
-     */
-    @Deprecated
-    public static DesktopFragment newInstance(WalletManagerModule manager) {
-        return new DesktopFragment();
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-
-            // setting up  module
-            //desktopSession = ((DesktopSession) appSession);
-            //moduleManager = desktopSession.getModuleManager();
-            //errorManager = appSession.getErrorManager();
-
-//            //get search name if
-//            searchName = getFermatScreenSwapper().connectBetweenAppsData()[0].toString();
-           lstItems = new ArrayList<>();
+        lstItems = new ArrayList<>();
 
 
-        } catch (Exception ex) {
-            //errorManager.reportUnexpectedUIException(UISource.ACTIVITY, UnexpectedUIExceptionSeverity.CRASH, ex);
-        }
+
+
     }
 
     /**
@@ -141,6 +130,16 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         try {
+//            handler = new Handler();
+//            handler.postDelayed(new Runnable() {
+//                public void run() {
+//                    if(appManagerSettings.isHelpEnabled()){
+//                        startWizard(WizardTypes.DESKTOP_WELCOME_WIZARD.getKey());
+//                    }
+//                }
+//            }, 500);
+
+
 
             rootView = inflater.inflate(R.layout.desktop_main, container, false);
             recyclerView = (RecyclerView) rootView.findViewById(R.id.gridView);
@@ -207,12 +206,12 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
 
             }
 
-        InstalledSubApp installedSubApp = new InstalledSubApp(SubApps.CWP_INTRA_USER_IDENTITY,null,null,"intra_user_identity_sub_app","Intra user Identity","public_key_ccp_intra_user_identity","intra_user_identity_sub_app",new Version(1,0,0), Platforms.CRYPTO_CURRENCY_PLATFORM);
+        InstalledSubApp installedSubApp = new InstalledSubApp(SubApps.CWP_INTRA_USER_IDENTITY,null,null,"intra_user_identity_sub_app","Intra user Identity","public_key_ccp_intra_user_identity","intra_user_identity_sub_app",new Version(1,0,0), Platforms.CRYPTO_CURRENCY_PLATFORM, AppsStatus.DEV);
         Item item = new Item(installedSubApp);
         item.setIconResource(R.drawable.intra_user_identity);
         lstItems.add(item);
 
-        installedSubApp = new InstalledSubApp(SubApps.CCP_INTRA_USER_COMMUNITY,null,null,"intra_user_community_sub_app","Intra user Community","public_key_intra_user_commmunity","intra_user_community_sub_app",new Version(1,0,0),Platforms.CRYPTO_CURRENCY_PLATFORM);
+        installedSubApp = new InstalledSubApp(SubApps.CCP_INTRA_USER_COMMUNITY,null,null,"intra_user_community_sub_app","Intra user Community","public_key_intra_user_commmunity","intra_user_community_sub_app",new Version(1,0,0),Platforms.CRYPTO_CURRENCY_PLATFORM, AppsStatus.DEV);
         Item item1 = new Item(installedSubApp);
         item1.setIconResource(R.drawable.intra_user_community);
         lstItems.add(item1);
@@ -329,17 +328,20 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
 
 
             for(InstalledWallet installedWallet: lstInstalledWallet) {
-                    if(installedWallet.getWalletPublicKey().equals("reference_wallet")) {
+                    if(installedWallet.getWalletPublicKey().equals(WalletsPublicKeys.CCP_REFERENCE_WALLET.getCode())) {
                         Item item = new Item(installedWallet);
                         item.setIconResource(R.drawable.bitcoin_wallet);
                         item.setPosition(0);
+                        installedWallet.setAppStatus(AppsStatus.ALPHA);
                         lstItemsWithIcon.add(item);
+
                     }
 
-                if(installedWallet.getWalletPublicKey().equals("loss_protected_wallet")) {
+                if(installedWallet.getWalletPublicKey().equals(WalletsPublicKeys.CWP_LOSS_PROTECTED_WALLET.getCode())) {
                     Item item = new Item(installedWallet);
-                    item.setIconResource(R.drawable.loss_protected);
+                    item.setIconResource(R.drawable.icon_loss_protected);
                     item.setPosition(8);
+                    installedWallet.setAppStatus(AppsStatus.DEV);
                     lstItemsWithIcon.add(item);
                 }
             }
@@ -350,10 +352,10 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     new ArrayList<InstalledLanguage>(),
                     "crypto_broker",
                     "Crypto Broker",
-                    "crypto_broker_wallet",
+                    WalletsPublicKeys.CBP_CRYPTO_BROKER_WALLET.getCode(),
                     "wallet_crypto_broker_platform_identifier",
                     new Version(1,0,0),
-                    AppsStatus.getDefaultStatus());
+                    AppsStatus.DEV);
             lstInstalledWallet.add(installedWallet);
             Item item = new Item(installedWallet);
             item.setIconResource(R.drawable.crypto_broker);
@@ -366,10 +368,10 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     new ArrayList<InstalledLanguage>(),
                     "crypto_customer",
                     "Crypto Customer",
-                    "crypto_customer_wallet",
+                    WalletsPublicKeys.CBP_CRYPTO_CUSTOMER_WALLET.getCode(),
                     "wallet_crypto_customer_platform_identifier",
                     new Version(1,0,0),
-                    AppsStatus.getDefaultStatus());
+                    AppsStatus.DEV);
             lstInstalledWallet.add(installedWallet);
             item = new Item(installedWallet);
             item.setIconResource(R.drawable.crypto_customer);
@@ -383,10 +385,10 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     new ArrayList<InstalledLanguage>(),
                     "asset_issuer",
                     "Asset Issuer",
-                    "asset_issuer",
+                    WalletsPublicKeys.DAP_ISSUER_WALLET.getCode(),
                     "wallet_platform_identifier",
                     new Version(1,0,0),
-                    AppsStatus.getDefaultStatus());
+                    AppsStatus.ALPHA);
             lstInstalledWallet.add(installedWallet);
             item = new Item(installedWallet);
             item.setIconResource(R.drawable.asset_issuer);
@@ -399,10 +401,10 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     new ArrayList<InstalledLanguage>(),
                     "asset_user",
                     "Asset User",
-                    "asset_user",
+                    WalletsPublicKeys.DAP_USER_WALLET.getCode(),
                     "wallet_platform_identifier",
                     new Version(1,0,0),
-                    AppsStatus.getDefaultStatus());
+                    AppsStatus.ALPHA);
             lstInstalledWallet.add(installedWallet);
             item = new Item(installedWallet);
             item.setIconResource(R.drawable.asset_user_wallet);
@@ -415,10 +417,10 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     new ArrayList<InstalledLanguage>(),
                     "redeem_point",
                     "Redeem Point",
-                    "redeem_point",
+                    WalletsPublicKeys.DAP_REDEEM_WALLET.getCode(),
                     "wallet_platform_identifier",
                     new Version(1,0,0),
-                    AppsStatus.getDefaultStatus());
+                    AppsStatus.ALPHA);
             lstInstalledWallet.add(installedWallet);
             item = new Item(installedWallet);
             item.setIconResource(R.drawable.redeem_point);
@@ -432,7 +434,7 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     new ArrayList<InstalledLanguage>(),
                     "banking_wallet",
                     "Banking Wallet",
-                    "banking_wallet",
+                    WalletsPublicKeys.BNK_BANKING_WALLET.getCode(),
                     "wallet_banking_platform_identifier",
                     new Version(1,0,0),
                     AppsStatus.DEV);
@@ -449,7 +451,7 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     new ArrayList<InstalledLanguage>(),
                     "cash_wallet",
                     "Cash Wallet",
-                    "cash_wallet",
+                    WalletsPublicKeys.CSH_MONEY_WALLET.getCode(),
                     "wallet_cash_platform_identifier",
                     new Version(1,0,0),
                     AppsStatus.DEV);
@@ -457,6 +459,24 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
             item = new Item(installedWallet);
             item.setIconResource(R.drawable.cash_wallet_xxhdpi);
             item.setPosition(7);
+            lstItemsWithIcon.add(item);
+
+
+            //TKY Fan Wallet
+            installedWallet= new com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledWallet(WalletCategory.REFERENCE_WALLET,
+                    WalletType.REFERENCE,
+                    new ArrayList<InstalledSkin>(),
+                    new ArrayList<InstalledLanguage>(),
+                    "fan_wallet",
+                    "Fan Wallet",
+                    WalletsPublicKeys.TKY_FAN_WALLET.getCode(),
+                    "wallet_fan_platform_identifier",
+                    new Version(1,0,0),
+                    AppsStatus.ALPHA);
+            lstInstalledWallet.add(installedWallet);
+            item = new Item(installedWallet);
+            item.setIconResource(R.drawable.subapp_fan_wallet_icon);
+            item.setPosition(9);
             lstItemsWithIcon.add(item);
 
 
@@ -490,11 +510,20 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                 arrItemsWithoutIcon[i] = emptyItem;
             }
 
-            for(Item itemIcon: lstItemsWithIcon){
-                arrItemsWithoutIcon[itemIcon.getPosition()]= itemIcon;
-            }
+            int pos = 0;
+            for(int i = 0;i<lstItemsWithIcon.size();i++){
+                Item itemIcon = lstItemsWithIcon.get(i);
+                if(itemIcon.getInterfaceObject() instanceof InstalledWallet){
+                    if(((InstalledWallet) itemIcon.getInterfaceObject()).getAppStatus() == getFermatActivityManager().getAppStatus()){
+                        arrItemsWithoutIcon[pos]= itemIcon;
+                    pos++;
+                    }
+                }
 
+            }
             dataSet.addAll(Arrays.asList(arrItemsWithoutIcon));
+
+//            dataSet.addAll(lstItemsWithIcon);
 
         } catch (Exception e){
             e.printStackTrace();
@@ -530,7 +559,7 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
                     if(data.getInterfaceObject().getName().equals("Communities")){
                         changeActivity(Activities.DESKTOP_COMMUNITY_ACTIVITY);
                     }else {
-                        FolderDialog folderDialog = new FolderDialog(getActivity(), R.style.AppThemeDialog, appSession, null, data.getName(), ((FermatFolder) data.getInterfaceObject()).getLstFolderItems(), this);
+                        FolderDialog folderDialog = new FolderDialog(getActivity(), R.style.AppThemeDialog, appSession, null, data.getName(), ((FermatFolder) data.getInterfaceObject()).getLstFolderItems(), this,((FermatActivityManager)getActivity()).getAppStatus());
                         folderDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
                         folderDialog.show();
                     }
@@ -557,13 +586,15 @@ public class DesktopFragment extends AbstractDesktopFragment<DesktopSession,SubA
             arrItemsWithoutIcon[i] = emptyItem;
         }
 
+        int j =0;
         for(Item itemIcon: list){
-            arrItemsWithoutIcon[itemIcon.getPosition()]= itemIcon;
+            arrItemsWithoutIcon[j]= itemIcon;
+            j++;
         }
 
-        if(adapter!=null) {
-            adapter.changeDataSet(Arrays.asList(arrItemsWithoutIcon));
-            adapter.notifyDataSetChanged();
+        if(recyclerView.getAdapter()!=null) {
+            ((DesktopAdapter)recyclerView.getAdapter()).changeDataSet(Arrays.asList(arrItemsWithoutIcon));
+            recyclerView.getAdapter().notifyDataSetChanged();
         }
     }
 

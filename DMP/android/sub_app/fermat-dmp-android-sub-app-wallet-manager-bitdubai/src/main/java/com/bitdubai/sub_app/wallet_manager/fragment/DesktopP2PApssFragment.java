@@ -1,7 +1,6 @@
 package com.bitdubai.sub_app.wallet_manager.fragment;
 
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
@@ -24,6 +23,8 @@ import com.bitdubai.fermat_android_api.ui.interfaces.FermatWorkerCallBack;
 import com.bitdubai.fermat_android_api.ui.util.FermatWorker;
 import com.bitdubai.fermat_api.AppsStatus;
 import com.bitdubai.fermat_api.FermatException;
+import com.bitdubai.fermat_api.layer.all_definition.enums.Platforms;
+import com.bitdubai.fermat_api.layer.all_definition.enums.SubAppsPublicKeys;
 import com.bitdubai.fermat_api.layer.all_definition.enums.UISource;
 import com.bitdubai.fermat_api.layer.all_definition.runtime.FermatApp;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
@@ -31,17 +32,15 @@ import com.bitdubai.fermat_api.layer.desktop.Item;
 import com.bitdubai.fermat_api.layer.dmp_engine.sub_app_runtime.enums.SubApps;
 import com.bitdubai.fermat_api.layer.dmp_module.InstalledApp;
 import com.bitdubai.fermat_api.layer.dmp_module.wallet_manager.InstalledWallet;
-import com.bitdubai.fermat_api.layer.interface_objects.FermatFolder;
 import com.bitdubai.fermat_dmp.wallet_manager.R;
 import com.bitdubai.fermat_pip_api.layer.network_service.subapp_resources.SubAppResources;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedUIExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedUIExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_wpd_api.layer.wpd_desktop_module.wallet_manager.interfaces.WalletManagerModule;
 import com.bitdubai.sub_app.wallet_manager.adapter.DesktopAdapter;
 import com.bitdubai.sub_app.wallet_manager.commons.EmptyItem;
 import com.bitdubai.sub_app.wallet_manager.commons.helpers.OnStartDragListener;
 import com.bitdubai.sub_app.wallet_manager.commons.helpers.SimpleItemTouchHelperCallback;
-import com.bitdubai.sub_app.wallet_manager.popup.FolderDialog;
 import com.bitdubai.sub_app.wallet_manager.session.DesktopSession;
 import com.bitdubai.sub_app.wallet_manager.structure.provisory_classes.InstalledSubApp;
 
@@ -329,33 +328,47 @@ public class DesktopP2PApssFragment extends AbstractDesktopFragment<DesktopSessi
 //                    lstItemsWithIcon.add(item);
 //                }
 //            }
-            InstalledApp installedApp = new InstalledApp("Tinder","tinder_public_key",new Version(),R.drawable.icon_empresa_tinder,0,0, com.bitdubai.fermat_api.AppsStatus.getDefaultStatus(),null);
+            InstalledApp installedApp = new InstalledApp("Dating","tinder_public_key",new Version(),R.drawable.datting,0,0, AppsStatus.DEV,null);
 
             lstInstalledApps.add(installedApp);
             Item item = new Item(installedApp);
-            item.setIconResource(R.drawable.icon_empresa_tinder);
+            item.setIconResource(R.drawable.datting);
             item.setPosition(0);
             lstItemsWithIcon.add(item);
 
-            installedApp = new InstalledApp("Airbnb","Airbnb_public_key",new Version(),R.drawable.icon_empresa_aribnb,0,0, com.bitdubai.fermat_api.AppsStatus.getDefaultStatus(),null);
+            installedApp = new InstalledApp("Jobs","Airbnb_public_key",new Version(),R.drawable.jobs,0,0,  AppsStatus.DEV,null);
             lstInstalledApps.add(installedApp);
             item = new Item(installedApp);
-            item.setIconResource(R.drawable.icon_empresa_aribnb);
+            item.setIconResource(R.drawable.jobs);
             item.setPosition(1);
             lstItemsWithIcon.add(item);
 
-            installedApp = new InstalledApp("eBay","eBay_public_key",new Version(),R.drawable.icon_ebay,0,0, com.bitdubai.fermat_api.AppsStatus.getDefaultStatus(),null);
+            installedApp = new InstalledApp("Market Place","eBay_public_key",new Version(),R.drawable.market_place_icon,0,0,  AppsStatus.DEV,null);
             lstInstalledApps.add(installedApp);
             item = new Item(installedApp);
-            item.setIconResource(R.drawable.icon_ebay);
+            item.setIconResource(R.drawable.market_place_icon);
             item.setPosition(2);
             lstItemsWithIcon.add(item);
 
-            installedApp = new InstalledApp("Mercado libre","mercado_libre_public_key",new Version(),R.drawable.icon_mercado_libre,0,0, com.bitdubai.fermat_api.AppsStatus.getDefaultStatus(),null);
+            installedApp = new InstalledApp("Household","mercado_libre_public_key",new Version(),R.drawable.house_hold,0,0,  AppsStatus.DEV,null);
             lstInstalledApps.add(installedApp);
             item = new Item(installedApp);
-            item.setIconResource(R.drawable.icon_mercado_libre);
+            item.setIconResource(R.drawable.house_hold);
             item.setPosition(3);
+            lstItemsWithIcon.add(item);
+
+            InstalledSubApp installedSubApp = new InstalledSubApp(SubApps.CHT_CHAT, null, null, "chat_sub_app", "Chat", SubAppsPublicKeys.CHT_OPEN_CHAT.getCode(), "chat_sub_app", new Version(1, 0, 0), Platforms.CHAT_PLATFORM, AppsStatus.ALPHA);
+            installedSubApp.setAppStatus(AppsStatus.ALPHA);
+            item = new Item(installedSubApp);
+            item.setIconResource(R.drawable.chat_subapp);
+            item.setPosition(4);
+            lstItemsWithIcon.add(item);
+
+            installedSubApp = new InstalledSubApp(SubApps.ART_MUSIC_PLAYER, null, null, "music_player_sub_app", "Music Player", SubAppsPublicKeys.ART_MUSIC_PLAYER.getCode(), "music_player_sub_app", new Version(1, 0, 0), Platforms.ART_PLATFORM, AppsStatus.ALPHA);
+            installedSubApp.setAppStatus(AppsStatus.ALPHA);
+            item = new Item(installedSubApp);
+            item.setIconResource(R.drawable.subapp_art_music_player);
+            item.setPosition(5);
             lstItemsWithIcon.add(item);
 
 
@@ -365,8 +378,17 @@ public class DesktopP2PApssFragment extends AbstractDesktopFragment<DesktopSessi
                 arrItemsWithoutIcon[i] = emptyItem;
             }
 
-            for(Item itemIcon: lstItemsWithIcon){
-                arrItemsWithoutIcon[itemIcon.getPosition()]= itemIcon;
+//            for(Item itemIcon: lstItemsWithIcon){
+//                arrItemsWithoutIcon[itemIcon.getPosition()]= itemIcon;
+//            }
+
+            int pos = 0;
+            for(int i = 0;i<lstItemsWithIcon.size();i++){
+                Item itemIcon = lstItemsWithIcon.get(i);
+                if((itemIcon.getAppStatus() == getFermatActivityManager().getAppStatus())){
+                    arrItemsWithoutIcon[pos]= itemIcon;
+                    pos++;
+                }
             }
 
             dataSet.addAll(Arrays.asList(arrItemsWithoutIcon));
@@ -387,14 +409,13 @@ public class DesktopP2PApssFragment extends AbstractDesktopFragment<DesktopSessi
 
     @Override
     public void onHolderItemClickListener(Item data, int position) {
+        //TODO: I put this here to test our Music player sub app. Manuel
         try {
             switch (data.getType()) {
                 case SUB_APP:
-                    if(((InstalledSubApp)data.getInterfaceObject()).getSubAppType().equals(SubApps.Scanner)){
-                        Toast.makeText(getActivity(),"Coming soon",Toast.LENGTH_SHORT).show();
-                    } else{
-                        selectSubApp((InstalledSubApp) data.getInterfaceObject());
-                    }
+                    if (((InstalledSubApp) data.getInterfaceObject()).getSubAppType().equals(SubApps.Scanner)) {
+                        Toast.makeText(getActivity(), "Coming soon", Toast.LENGTH_SHORT).show();
+                    } else selectSubApp((InstalledSubApp) data.getInterfaceObject());
                     break;
                 case WALLET:
                     selectWallet((InstalledWallet) data.getInterfaceObject());
@@ -402,20 +423,51 @@ public class DesktopP2PApssFragment extends AbstractDesktopFragment<DesktopSessi
                 case EMPTY:
                     break;
                 case FOLDER:
-                    FolderDialog folderDialog = new FolderDialog(getActivity(),R.style.AppThemeDialog,appSession,null,data.getName(),((FermatFolder)data.getInterfaceObject()).getLstFolderItems(),this);
-//                    folderDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-//                    folderDialog.getWindow().setFormat(PixelFormat.TRANSLUCENT);
-//                    WindowManager.LayoutParams lp = folderDialog.getWindow().getAttributes();
-//                    lp.dimAmount=0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
-//                    folderDialog.getWindow().setAttributes(lp);
-                    folderDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-                    folderDialog.show();
-                    break;
-                case P2P_APP:
-                    selectApp((InstalledApp) data.getInterfaceObject());
+//                    FolderDialog folderDialog = new FolderDialog(getActivity(),R.style.AppThemeDialog,desktopSession,null,data.getName(),((FermatFolder)data.getInterfaceObject()).getLstFolderItems(),this);
+////                    folderDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+////                    folderDialog.getWindow().setFormat(PixelFormat.TRANSLUCENT);
+////                    WindowManager.LayoutParams lp = folderDialog.getWindow().getAttributes();
+////                    lp.dimAmount=0.0f; // Dim level. 0.0 - no dim, 1.0 - completely opaque
+////                    folderDialog.getWindow().setAttributes(lp);
+//                    folderDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+//                    folderDialog.show();
                     break;
                 default:
                     break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //TODO: End of experimental code. Manuel.
+    }
+
+
+    private void select(AppsStatus appsStatus){
+        try {
+            List<Item> list = new ArrayList<>();
+            for (Item installedWallet : lstItemsWithIcon) {
+                if(installedWallet.getAppStatus()!=null) {
+                    if(appsStatus.isAppStatusAvailable(installedWallet.getAppStatus())) {
+                        list.add(installedWallet);
+                    }
+                }
+            }
+            Item[] arrItemsWithoutIcon = new Item[12];
+            for (int i = 0; i < 12; i++) {
+                Item emptyItem = new Item(new EmptyItem(0, i));
+                emptyItem.setIconResource(-1);
+                arrItemsWithoutIcon[i] = emptyItem;
+            }
+
+            int j = 0;
+            for (Item itemIcon : list) {
+                arrItemsWithoutIcon[j] = itemIcon;
+                j++;
+            }
+
+            if (recyclerView.getAdapter() != null) {
+                ((DesktopAdapter) recyclerView.getAdapter()).changeDataSet(Arrays.asList(arrItemsWithoutIcon));
+                recyclerView.getAdapter().notifyDataSetChanged();
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -434,6 +486,18 @@ public class DesktopP2PApssFragment extends AbstractDesktopFragment<DesktopSessi
     @Override
     public void onUpdateViewOnUIThread(String code) {
         AppsStatus appsStatus = AppsStatus.getByCode(code);
+        switch (appsStatus){
+            case RELEASE:
+                break;
+            case BETA:
+                break;
+            case ALPHA:
+                break;
+            case DEV:
+                break;
+        }
+
+        select(appsStatus);
         super.onUpdateViewOnUIThread(code);
     }
 

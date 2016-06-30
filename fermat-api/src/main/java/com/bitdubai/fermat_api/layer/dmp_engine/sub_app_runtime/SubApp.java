@@ -1,13 +1,12 @@
 package com.bitdubai.fermat_api.layer.dmp_engine.sub_app_runtime;
 
+import com.bitdubai.fermat_api.layer.all_definition.exceptions.InvalidParameterException;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.Activity;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.LanguagePackage;
-
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Activities;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.interfaces.FermatStructure;
 import com.bitdubai.fermat_api.layer.all_definition.runtime.FermatApp;
 import com.bitdubai.fermat_api.layer.dmp_engine.sub_app_runtime.enums.SubApps;
-
 
 import java.util.Map;
 
@@ -48,15 +47,8 @@ public interface SubApp extends FermatApp,FermatStructure {
      * Last screen active
      */
 
-    Activity getLastActivity();
+    Activity getLastActivity() throws InvalidParameterException;
 
-    /**
-     * Main screen of a SubApp
-     *
-     * @param activity
-     */
-
-    void addPosibleStartActivity(Activities activity);
 
     /**
      *  Available languages
@@ -66,4 +58,5 @@ public interface SubApp extends FermatApp,FermatStructure {
 
     Map<String,LanguagePackage> getLanguagePackages();
 
+    void clear();
 }

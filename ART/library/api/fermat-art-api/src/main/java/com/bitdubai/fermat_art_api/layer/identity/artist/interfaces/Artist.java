@@ -10,15 +10,22 @@ import com.bitdubai.fermat_art_api.all_definition.interfaces.ArtIdentity;
 public interface Artist extends ArtIdentity {
 
     /**
-     * This method returns the artist exposure level.
+     * This method returns the external platform username.
+     * @return
+     */
+    String getExternalUsername();
+
+    /**
+     * This method returns the Exposure level.
      * @return
      */
     ExposureLevel getExposureLevel();
 
     /**
-     * This method returns the artist politics about the connections with fans.
+     * This Method returns the Artist Accept Connections Type.
      * @return
      */
     ArtistAcceptConnectionsType getArtistAcceptConnectionsType();
+
 
 }

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#F1F2F2"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:id="@+id/arc_full_row">
+
+    <View
+        android:id="@+id/upline"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
+        android:layout_below="@+id/relative1"
+        android:background="@drawable/line_coloured"
+        android:visibility="gone"
+
+        />
+
+    <LinearLayout
+        android:id="@+id/afc_row_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/afc_imageView_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:background="#F1F2F2"
+            android:src="@drawable/icon_users"
+            tools:ignore="ContentDescription" />
+
+        <com.bitdubai.fermat_android_api.layer.definition.wallet.views.FermatTextView
+            android:id="@+id/afc_textView_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#F1F2F2"
+            android:paddingBottom="14dp"
+            android:paddingLeft="16dp"
+            android:paddingTop="14dp"
+            android:text="Home"
+            android:textColor="#6D6F71"
+            android:textSize="16sp"
+            tools:ignore="HardcodedText" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+
+        android:background="#D1D3D4" />
+
+</LinearLayout>

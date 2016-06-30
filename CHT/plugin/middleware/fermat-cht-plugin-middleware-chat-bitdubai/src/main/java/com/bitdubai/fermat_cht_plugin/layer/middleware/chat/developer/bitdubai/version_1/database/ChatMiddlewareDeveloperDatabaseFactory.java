@@ -7,6 +7,7 @@ import com.bitdubai.fermat_api.layer.all_definition.developer.DeveloperDatabase;
 import com.bitdubai.fermat_api.layer.all_definition.developer.DeveloperDatabaseTable;
 import com.bitdubai.fermat_api.layer.all_definition.developer.DeveloperDatabaseTableRecord;
 import com.bitdubai.fermat_api.layer.all_definition.developer.DeveloperObjectFactory;
+import com.bitdubai.fermat_api.layer.all_definition.enums.Plugins;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.Database;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.DatabaseRecord;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.DatabaseTable;
@@ -18,6 +19,8 @@ import com.bitdubai.fermat_api.layer.osa_android.database_system.exceptions.Cant
 import com.bitdubai.fermat_api.layer.osa_android.database_system.exceptions.CantOpenDatabaseException;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.exceptions.DatabaseNotFoundException;
 import com.bitdubai.fermat_cht_plugin.layer.middleware.chat.developer.bitdubai.version_1.exceptions.CantInitializeChatMiddlewareDatabaseException;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +36,9 @@ import java.util.UUID;
  * @since Java JDK 1.7
  */
 public class ChatMiddlewareDeveloperDatabaseFactory implements DealsWithPluginDatabaseSystem, DealsWithPluginIdentity {
+
+    private ErrorManager errorManager;
+
     /**
      * DealsWithPluginDatabaseSystem Interface member variables.
      */
@@ -64,6 +70,7 @@ public class ChatMiddlewareDeveloperDatabaseFactory implements DealsWithPluginDa
               */
             database = this.pluginDatabaseSystem.openDatabase(pluginId, ChatMiddlewareDatabaseConstants.DATABASE_NAME);
         } catch (CantOpenDatabaseException cantOpenDatabaseException) {
+            errorManager.reportUnexpectedPluginException(Plugins.CHAT_MIDDLEWARE, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantOpenDatabaseException);
              /*
               * The database exists but cannot be open. I can not handle this situation.
               */
@@ -80,6 +87,7 @@ public class ChatMiddlewareDeveloperDatabaseFactory implements DealsWithPluginDa
                    */
                 database = chatMiddlewareDatabaseFactory.createDatabase(pluginId, pluginId.toString());
             } catch (CantCreateDatabaseException cantCreateDatabaseException) {
+                errorManager.reportUnexpectedPluginException(Plugins.CHAT_MIDDLEWARE, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateDatabaseException);
                   /*
                    * The database cannot be created. I can not handle this situation.
                    */
@@ -113,6 +121,8 @@ public class ChatMiddlewareDeveloperDatabaseFactory implements DealsWithPluginDa
         chatsColumns.add(ChatMiddlewareDatabaseConstants.CHATS_CREATION_DATE_COLUMN_NAME);
         chatsColumns.add(ChatMiddlewareDatabaseConstants.CHATS_LAST_MESSAGE_DATE_COLUMN_NAME);
         chatsColumns.add(ChatMiddlewareDatabaseConstants.CHATS_CONTACT_ASSOCIATED_LIST);
+        chatsColumns.add(ChatMiddlewareDatabaseConstants.CHATS_TYPE_CHAT);
+        chatsColumns.add(ChatMiddlewareDatabaseConstants.CHATS_SCHEDULED_DELIVERY);
         /**
          * Table Chats addition.
          */
@@ -206,6 +216,23 @@ public class ChatMiddlewareDeveloperDatabaseFactory implements DealsWithPluginDa
          */
         DeveloperDatabaseTable identitiesTable = developerObjectFactory.getNewDeveloperDatabaseTable(ChatMiddlewareDatabaseConstants.IDENTITY_TABLE_NAME, identitiesColumns);
         tables.add(identitiesTable);
+
+        /**
+         * Table Group Member columns.
+         */
+        List<String> groupMemberColumns = new ArrayList<String>();
+
+        groupMemberColumns.add(ChatMiddlewareDatabaseConstants.GROUP_MEMBER_ID_COLUMN_NAME);
+        groupMemberColumns.add(ChatMiddlewareDatabaseConstants.GROUP_MEMBER_GROUP_ID_COLUMN_NAME);
+        groupMemberColumns.add(ChatMiddlewareDatabaseConstants.GROUP_MEMBER_USER_REGISTERED_PUBLIC_KEY_COLUMN_NAME);
+        groupMemberColumns.add(ChatMiddlewareDatabaseConstants.GROUP_MEMBER_ALIAS_COLUMN_NAME);
+
+
+        /**
+         * Table Group Member addition.
+         */
+        DeveloperDatabaseTable groupMemberTable = developerObjectFactory.getNewDeveloperDatabaseTable(ChatMiddlewareDatabaseConstants.GROUP_MEMBER_TABLE_NAME, groupMemberColumns);
+        tables.add(groupMemberTable);
 
         return tables;
     }

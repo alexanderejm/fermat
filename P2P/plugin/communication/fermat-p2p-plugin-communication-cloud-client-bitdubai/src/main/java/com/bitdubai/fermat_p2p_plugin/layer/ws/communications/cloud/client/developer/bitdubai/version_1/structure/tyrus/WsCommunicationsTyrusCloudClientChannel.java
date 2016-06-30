@@ -11,6 +11,7 @@ import com.bitdubai.fermat_api.layer.all_definition.crypto.asymmetric.Asymmetric
 import com.bitdubai.fermat_api.layer.all_definition.crypto.asymmetric.ECCKeyPair;
 import com.bitdubai.fermat_api.layer.all_definition.events.EventSource;
 import com.bitdubai.fermat_api.layer.all_definition.events.interfaces.FermatEvent;
+import com.bitdubai.fermat_api.layer.osa_android.hardware.HardwareManager;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.commons.contents.FermatPacketDecoder;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.enums.P2pEventType;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.events.CompleteClientComponentRegistrationNotificationEvent;
@@ -51,6 +52,11 @@ public class WsCommunicationsTyrusCloudClientChannel {
      * DealWithEvents Interface member variables.
      */
     private EventManager eventManager;
+
+    /**
+     * Hardaware
+     */
+    private HardwareManager hardwareManager;
 
     /**
      * Represent the wsCommunicationsCloudClientConnection
@@ -244,11 +250,11 @@ public class WsCommunicationsTyrusCloudClientChannel {
     public void closeConnection(){
 
         try {
-
-            System.out.println(" WsCommunicationsTyrusCloudClientChannel - close connection");
-            clientConnection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "The cloud client close the connection, intentionally."));
-            raiseClientConnectionCloseNotificationEvent();
-
+            if(clientConnection.isOpen()) {
+                System.out.println(" WsCommunicationsTyrusCloudClientChannel - close connection");
+                clientConnection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "The cloud client close the connection, intentionally."));
+                raiseClientConnectionCloseNotificationEvent();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -271,7 +277,7 @@ public class WsCommunicationsTyrusCloudClientChannel {
 
     public void sendPing() throws IOException {
 
-        System.out.println(" WsCommunicationsTyrusCloudClientChannel - Sending ping to the node...");
+        //System.out.println(" WsCommunicationsTyrusCloudClientChannel - Sending ping to the node...");
 
         String pingString = "PING";
         ByteBuffer pingData = ByteBuffer.allocate(pingString.getBytes().length);
@@ -283,7 +289,7 @@ public class WsCommunicationsTyrusCloudClientChannel {
 
     @OnMessage
     public void onPongMessage(PongMessage message) {
-        System.out.println(" WsCommunicationsTyrusCloudClientChannel - Pong message receive from server = " + message.getApplicationData().asCharBuffer().toString());
+        //System.out.println(" WsCommunicationsTyrusCloudClientChannel - Pong message receive from server = " + message.getApplicationData().asCharBuffer().toString());
     }
 
 
@@ -548,4 +554,7 @@ public class WsCommunicationsTyrusCloudClientChannel {
 
     }
 
+    public HardwareManager getHardwareManager() {
+        return hardwareManager;
+    }
 }

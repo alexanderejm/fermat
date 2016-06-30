@@ -17,6 +17,7 @@ import com.bitdubai.fermat_api.layer.all_definition.enums.Platforms;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Plugins;
 import com.bitdubai.fermat_api.layer.all_definition.enums.ServiceStatus;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
+import com.bitdubai.fermat_api.layer.core.PluginInfo;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.PluginDatabaseSystem;
 import com.bitdubai.fermat_api.layer.osa_android.file_system.PluginFileSystem;
 import com.bitdubai.fermat_api.layer.world.interfaces.Currency;
@@ -35,8 +36,8 @@ import com.bitdubai.fermat_cer_api.all_definition.interfaces.ExchangeRate;
 import com.bitdubai.fermat_cer_plugin.layer.provider.europeancentralbank.developer.bitdubai.version_1.database.EuropeanCentralBankProviderDao;
 import com.bitdubai.fermat_cer_plugin.layer.provider.europeancentralbank.developer.bitdubai.version_1.database.EuropeanCentralBankProviderDeveloperDatabaseFactory;
 import com.bitdubai.fermat_cer_plugin.layer.provider.europeancentralbank.developer.bitdubai.version_1.exceptions.CantInitializeEuropeanCentralBankProviderDatabaseException;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 
 import org.json.JSONException;
@@ -52,6 +53,7 @@ import java.util.UUID;
 /**
  * Created by Alejandro Bicelis on 11/2/2015.
  */
+@PluginInfo(createdBy = "abicelis", maintainerMail = "abicelis@gmail.com", platform = Platforms.CURRENCY_EXCHANGE_RATE_PLATFORM, layer = Layers.PROVIDER, plugin = Plugins.EUROPEAN_CENTRAL_BANK)
 public class ProviderEuropeanCentralBankPluginRoot extends AbstractPlugin implements DatabaseManagerForDevelopers, CurrencyExchangeRateProviderManager {
 
     @NeededAddonReference(platform = Platforms.OPERATIVE_SYSTEM_API, layer = Layers.SYSTEM, addon = Addons.PLUGIN_DATABASE_SYSTEM)
@@ -106,7 +108,7 @@ public class ProviderEuropeanCentralBankPluginRoot extends AbstractPlugin implem
             dao.initialize();
             dao.initializeProvider("EuropeanCentralBank");
         } catch (Exception e) {
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, e);
+            errorManager.reportUnexpectedPluginException(Plugins.EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, e);
             throw new CantStartPluginException(CantStartPluginException.DEFAULT_MESSAGE, FermatException.wrapException(e), null, null);
         }
         serviceStatus = ServiceStatus.STARTED;
@@ -168,7 +170,7 @@ public class ProviderEuropeanCentralBankPluginRoot extends AbstractPlugin implem
         try {
             dao.saveCurrentExchangeRate(exchangeRate);
         }catch (CantSaveExchangeRateException e) {
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, e);
+            errorManager.reportUnexpectedPluginException(Plugins.EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, e);
         }
         return exchangeRate;
     }
@@ -212,7 +214,7 @@ public class ProviderEuropeanCentralBankPluginRoot extends AbstractPlugin implem
             try {
                 dao.saveDailyExchangeRate(requiredExchangeRate);
             } catch (CantSaveExchangeRateException exx) {
-                errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, exx);
+                errorManager.reportUnexpectedPluginException(Plugins.EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, exx);
             }
         }
 
@@ -266,7 +268,7 @@ public class ProviderEuropeanCentralBankPluginRoot extends AbstractPlugin implem
         try {
             dao.updateDailyExchangeRateTable(currencyPair, requiredExchangeRates);
         } catch (CantSaveExchangeRateException exx) {
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, exx);
+            errorManager.reportUnexpectedPluginException(Plugins.EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, exx);
         }
 
         return requiredExchangeRates;
@@ -306,7 +308,7 @@ public class ProviderEuropeanCentralBankPluginRoot extends AbstractPlugin implem
             factory.initializeDatabase();
             tableRecordList = factory.getDatabaseTableContent(developerObjectFactory, developerDatabaseTable);
         } catch (CantInitializeEuropeanCentralBankProviderDatabaseException e) {
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, e);
+            errorManager.reportUnexpectedPluginException(Plugins.EUROPEAN_CENTRAL_BANK, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, e);
         }
         return tableRecordList;
     }

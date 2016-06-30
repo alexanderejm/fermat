@@ -1,11 +1,12 @@
 package com.bitdubai.fermat_art_api.layer.identity.artist.interfaces;
 
 import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.FermatManager;
+import com.bitdubai.fermat_art_api.all_definition.enums.ArtExternalPlatform;
 import com.bitdubai.fermat_art_api.all_definition.enums.ArtistAcceptConnectionsType;
 import com.bitdubai.fermat_art_api.all_definition.enums.ExposureLevel;
-import com.bitdubai.fermat_art_api.all_definition.enums.ExternalPlatform;
 import com.bitdubai.fermat_art_api.all_definition.exceptions.CantHideIdentityException;
 import com.bitdubai.fermat_art_api.all_definition.exceptions.CantPublishIdentityException;
+import com.bitdubai.fermat_art_api.all_definition.interfaces.ArtIdentity;
 import com.bitdubai.fermat_art_api.layer.identity.artist.exceptions.ArtistIdentityAlreadyExistsException;
 import com.bitdubai.fermat_art_api.layer.identity.artist.exceptions.CantCreateArtistIdentityException;
 import com.bitdubai.fermat_art_api.layer.identity.artist.exceptions.CantGetArtistIdentityException;
@@ -13,7 +14,9 @@ import com.bitdubai.fermat_art_api.layer.identity.artist.exceptions.CantListArti
 import com.bitdubai.fermat_art_api.layer.identity.artist.exceptions.CantUpdateArtistIdentityException;
 import com.bitdubai.fermat_art_api.all_definition.exceptions.IdentityNotFoundException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Manuel Perez (darkpriestrelative@gmail.com) on 09/03/16.
@@ -29,34 +32,58 @@ public interface ArtistIdentityManager extends FermatManager{
     List<Artist> listIdentitiesFromCurrentDeviceUser() throws CantListArtistIdentitiesException;
 
     /**
+     * Through the method <code>listExternalIdentitiesFromCurrentDeviceUser</code> we can get all the external artist
+     * identities linked to the current logged device user.
+     * @return
+     * @throws CantListArtistIdentitiesException
+     */
+    HashMap<ArtExternalPlatform,HashMap<UUID,String>> listExternalIdentitiesFromCurrentDeviceUser() throws CantListArtistIdentitiesException;
+
+    /**
+     * Return an Object with the basic data from the linked identity and its respectible
+     * @param publicKey
+     * @return
+     */
+    ArtIdentity getLinkedIdentity(String publicKey);
+
+    /**
      * Through the method <code>createArtistIdentity</code> you can create a new artist identity.
      * @param alias
      * @param imageBytes
+     * @param exposureLevel
+     * @param acceptConnectionsType
      * @return
      * @throws
      */
+
     Artist createArtistIdentity(
             final String alias,
-            final byte[] imageBytes) throws
-            CantCreateArtistIdentityException,
+            final byte[] imageBytes,
+            final String externalUsername,
+            ExposureLevel exposureLevel,
+            ArtistAcceptConnectionsType acceptConnectionsType,
+            final UUID externalIdentityID,
+            final ArtExternalPlatform artExternalPlatform) throws    CantCreateArtistIdentityException,
             ArtistIdentityAlreadyExistsException;
-
     /**
      *
      * @param alias
      * @param publicKey
      * @param profileImage
-     * @param externalUserName
-     * @param externalAccessToken
-     * @param externalPlatform
      * @param exposureLevel
-     * @param artistAcceptConnectionsType
+     * @param acceptConnectionsType
+     * @param externalIdentityID
      * @throws CantUpdateArtistIdentityException
      */
     void updateArtistIdentity(
-            String alias,String publicKey, byte[] profileImage,
-            String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform,
-            ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) throws
+            String alias,
+            String publicKey,
+            byte[] profileImage,
+            ExposureLevel exposureLevel,
+            ArtistAcceptConnectionsType acceptConnectionsType,
+            UUID externalIdentityID,
+            ArtExternalPlatform artExternalPlatform,
+            String externalUserName) throws
             CantUpdateArtistIdentityException;
 
     /**

@@ -18,17 +18,17 @@ import com.bitdubai.fermat_android_api.ui.adapters.FermatAdapter;
 import com.bitdubai.fermat_android_api.ui.enums.FermatRefreshTypes;
 import com.bitdubai.fermat_android_api.ui.fragments.FermatWalletListFragment;
 import com.bitdubai.fermat_android_api.ui.interfaces.FermatListItemListeners;
+import com.bitdubai.fermat_api.layer.all_definition.enums.WalletsPublicKeys;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Activities;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Wallets;
-import com.bitdubai.fermat_bnk_api.all_definition.bank_money_transaction.BankTransaction;
 import com.bitdubai.fermat_bnk_api.all_definition.constants.BankWalletBroadcasterConstants;
 import com.bitdubai.fermat_bnk_api.all_definition.enums.BankTransactionStatus;
 import com.bitdubai.fermat_bnk_api.all_definition.enums.TransactionType;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.interfaces.BankAccountNumber;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.interfaces.BankMoneyTransactionRecord;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet_module.interfaces.BankMoneyWalletModuleManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.reference_wallet.bank_money_wallet.R;
 import com.bitdubai.reference_wallet.bank_money_wallet.common.adapters.TransactionListAdapter;
 import com.bitdubai.reference_wallet.bank_money_wallet.common.dialogs.CreateTransactionFragmentDialog;
@@ -36,6 +36,7 @@ import com.bitdubai.reference_wallet.bank_money_wallet.session.BankMoneyWalletSe
 import com.bitdubai.reference_wallet.bank_money_wallet.util.CommonLogger;
 import com.bitdubai.reference_wallet.bank_money_wallet.util.ReferenceWalletConstants;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class AccountDetailFragment extends FermatWalletListFragment<BankMoneyTra
     private BankMoneyWalletModuleManager moduleManager;
     private ErrorManager errorManager;
     private ArrayList<BankMoneyTransactionRecord> transactionList;
-    private String walletPublicKey = "banking_wallet";
+    private String walletPublicKey = WalletsPublicKeys.BNK_BANKING_WALLET.getCode();//"banking_wallet";
     private BankAccountNumber bankAccountNumber;
 
     com.getbase.floatingactionbutton.FloatingActionsMenu fab;
@@ -158,8 +159,10 @@ public class AccountDetailFragment extends FermatWalletListFragment<BankMoneyTra
 
         accountText.setText(bankAccountNumber.getAccount());
         aliasText.setText(bankAccountNumber.getAlias());
-        availableTextView.setText(String.valueOf(moduleManager.getBankingWallet().getAvailableBalance(bankAccountNumber.getAccount())) + " " + bankAccountNumber.getCurrencyType().getCode());
-        bookTextView.setText(String.valueOf(moduleManager.getBankingWallet().getBookBalance(bankAccountNumber.getAccount())) + " " + bankAccountNumber.getCurrencyType().getCode());
+        DecimalFormat df = new DecimalFormat("#");
+        df.setMaximumFractionDigits(8);
+        availableTextView.setText(df.format(moduleManager.getBankingWallet().getAvailableBalance(bankAccountNumber.getAccount())) + " " + bankAccountNumber.getCurrencyType().getCode());
+        bookTextView.setText(df.format(moduleManager.getBankingWallet().getBookBalance(bankAccountNumber.getAccount())) + " " + bankAccountNumber.getCurrencyType().getCode());
         balanceText.setTextColor(getResources().getColor(R.color.text_color_soft_blue));
         if (availableTextView.getText().equals(bookTextView.getText())) {
             bookTextView.setVisibility(View.GONE);

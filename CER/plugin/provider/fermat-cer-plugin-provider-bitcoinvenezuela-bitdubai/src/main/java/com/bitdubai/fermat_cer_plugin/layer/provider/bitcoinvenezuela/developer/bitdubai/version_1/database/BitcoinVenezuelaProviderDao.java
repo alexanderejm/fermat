@@ -29,8 +29,8 @@ import com.bitdubai.fermat_cer_api.layer.provider.exceptions.CantInitializeProvi
 import com.bitdubai.fermat_cer_api.layer.provider.exceptions.CantSaveExchangeRateException;
 import com.bitdubai.fermat_cer_api.layer.provider.utils.DateHelper;
 import com.bitdubai.fermat_cer_plugin.layer.provider.bitcoinvenezuela.developer.bitdubai.version_1.exceptions.CantInitializeBitcoinVenezuelaProviderDatabaseException;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +63,14 @@ public class BitcoinVenezuelaProviderDao {
             try {
                 database = databaseFactory.createDatabase(pluginId, pluginId.toString());
             } catch (CantCreateDatabaseException cantCreateDatabaseException) {
-                errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_BITCOINVENEZUELA, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateDatabaseException);
+                errorManager.reportUnexpectedPluginException(Plugins.BITCOINVENEZUELA, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantCreateDatabaseException);
                 throw new CantInitializeBitcoinVenezuelaProviderDatabaseException("Database could not be opened", cantCreateDatabaseException, "Database Name: " + BitcoinVenezuelaProviderDatabaseConstants.DAILY_EXCHANGE_RATES_TABLE_NAME, "");
             }
         }catch (CantOpenDatabaseException cantOpenDatabaseException) {
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_BITCOINVENEZUELA, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantOpenDatabaseException);
+            errorManager.reportUnexpectedPluginException(Plugins.BITCOINVENEZUELA, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, cantOpenDatabaseException);
             throw new CantInitializeBitcoinVenezuelaProviderDatabaseException("Database could not be opened", cantOpenDatabaseException, "Database Name: " + BitcoinVenezuelaProviderDatabaseConstants.DAILY_EXCHANGE_RATES_TABLE_NAME, "");
         } catch (Exception e) {
-            errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CER_PROVIDER_BITCOINVENEZUELA, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, e);
+            errorManager.reportUnexpectedPluginException(Plugins.BITCOINVENEZUELA, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, e);
             throw new CantInitializeBitcoinVenezuelaProviderDatabaseException("Database could not be opened", FermatException.wrapException(e), "Database Name: " + BitcoinVenezuelaProviderDatabaseConstants.DAILY_EXCHANGE_RATES_TABLE_NAME, "");
         }
     }

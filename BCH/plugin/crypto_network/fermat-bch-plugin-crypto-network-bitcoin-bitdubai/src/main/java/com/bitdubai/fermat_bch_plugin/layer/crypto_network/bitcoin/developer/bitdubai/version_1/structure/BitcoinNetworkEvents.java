@@ -7,8 +7,10 @@ import com.bitdubai.fermat_api.layer.osa_android.broadcaster.BroadcasterType;
 import com.bitdubai.fermat_api.layer.osa_android.broadcaster.FermatBundle;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.PluginDatabaseSystem;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.BlockchainDownloadProgress;
+import com.bitdubai.fermat_bch_api.layer.crypto_network.events.BlockchainDownloadUpToDateEvent;
 import com.bitdubai.fermat_bch_plugin.layer.crypto_network.bitcoin.developer.bitdubai.version_1.database.BitcoinCryptoNetworkDatabaseDao;
 import com.bitdubai.fermat_bch_plugin.layer.crypto_network.bitcoin.developer.bitdubai.version_1.exceptions.CantExecuteDatabaseOperationException;
+import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 
 import org.bitcoinj.core.AbstractBlockChain;
 import org.bitcoinj.core.Block;
@@ -50,7 +52,7 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
     /**
      * Class variables
      */
-    BitcoinCryptoNetworkDatabaseDao dao;
+    private final BitcoinCryptoNetworkDatabaseDao dao;
     File walletFilename;
     final BlockchainNetworkType NETWORK_TYPE;
     final Context context;
@@ -58,29 +60,32 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
     BlockchainDownloadProgress blockchainDownloadProgress;
     Wallet cryptoNetworkWallet;
 
+
     /**
-     * Platform variables
+     * platform variables
      */
-    PluginDatabaseSystem pluginDatabaseSystem;
-    UUID pluginId;
-    Broadcaster broadcaster;
+    final EventManager eventManager;
 
     /**
      * Constructor
-     * @param pluginDatabaseSystem
      */
-    public BitcoinNetworkEvents(BlockchainNetworkType blockchainNetworkType, PluginDatabaseSystem pluginDatabaseSystem, UUID pluginId, File walletFilename, Context context, Broadcaster broadcaster, Wallet wallet) {
+    public BitcoinNetworkEvents(BlockchainNetworkType blockchainNetworkType,
+                                File walletFilename,
+                                Context context,
+                                Wallet wallet,
+                                BitcoinCryptoNetworkDatabaseDao bitcoinCryptoNetworkDatabaseDao,
+                                EventManager eventManager) {
         this.NETWORK_TYPE = blockchainNetworkType;
-        this.pluginDatabaseSystem = pluginDatabaseSystem;
-        this.pluginId = pluginId;
         this.walletFilename = walletFilename;
         this.context = context;
         this.NETWORK_PARAMETERS = context.getParams();
-        this.broadcaster = broadcaster;
         this.cryptoNetworkWallet = wallet;
+        this.dao = bitcoinCryptoNetworkDatabaseDao;
+        this.eventManager = eventManager;
 
         //define the blockchain download progress class with zero values
-        blockchainDownloadProgress = new BlockchainDownloadProgress(NETWORK_TYPE, 0, 0, 0, 100);
+        blockchainDownloadProgress = new BlockchainDownloadProgress(NETWORK_TYPE, 0, 0, 0, 0);
+
     }
 
     @Override
@@ -93,23 +98,27 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
         if (blocksLeft % 1000 == 0)
             System.out.println("***CryptoNetwork*** Block downloaded on " + NETWORK_TYPE.getCode() + ". Pending blocks: " + blocksLeft);
 
+
         /**
          * sets the blockchainDownloader data
          */
         blockchainDownloadProgress.setPendingBlocks(blocksLeft);
+        blockchainDownloadProgress.setLastBlockDownloadTime(block.getTimeSeconds());
+
         if (blockchainDownloadProgress.getTotalBlocks() == 0)
             blockchainDownloadProgress.setTotalBlocks(blocksLeft);
 
         blockchainDownloadProgress.setDownloader(peer.toString());
 
         /**
-         * broadcast the progress bar
+         * Now I will raise the BlockchainDownloadUpToDateEvent to notify that we are updated
          */
-        if (blockchainDownloadProgress.getProgress() < 100){
-            FermatBundle fermatBundle = new FermatBundle();
-            fermatBundle.put(Broadcaster.PROGRESS_BAR, blockchainDownloadProgress.getProgress());
-            broadcaster.publish(BroadcasterType.NOTIFICATION_PROGRESS_SERVICE, fermatBundle);
+        if (blocksLeft == 0){
+            BlockchainDownloadUpToDateEvent blockchainDownloadUpToDateEvent = new BlockchainDownloadUpToDateEvent(blockchainDownloadProgress, NETWORK_TYPE);
+            eventManager.raiseEvent(blockchainDownloadUpToDateEvent);
+            System.out.println("***CryptoNetwork*** BlockchainDownloadUpToDateEvent raised. " + blockchainDownloadProgress.toString());
         }
+
     }
 
 
@@ -140,7 +149,7 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
 
     @Override
     public void onTransaction(Peer peer, Transaction t) {
-        System.out.println("Transaction on Crypto Network:" + t.toString());
+        //System.out.println("Transaction on Crypto Network:" + t.toString());
     }
 
     @Nullable
@@ -174,7 +183,7 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
      */
     public void saveCryptoTransaction(CryptoTransaction cryptoTransaction) {
         try {
-            getDao().saveCryptoTransaction(cryptoTransaction, null);
+            dao.saveCryptoTransaction(cryptoTransaction, null);
         } catch (CantExecuteDatabaseOperationException e) {
             //todo maybe try saving to disk if database fails.
             e.printStackTrace();
@@ -230,15 +239,6 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
         // I may need to reset the wallet in this case?
     }
 
-    /**
-     * instantiates the database object
-     * @return
-     */
-    private BitcoinCryptoNetworkDatabaseDao getDao(){
-        if (dao == null)
-            dao = new BitcoinCryptoNetworkDatabaseDao(this.pluginId, this.pluginDatabaseSystem);
-        return dao;
-    }
 
     /**
      * Blockchain events
@@ -270,6 +270,7 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
         return true;
     }
 
+
     /**
      * returns the blockchain download progress class.
      * @return
@@ -277,5 +278,6 @@ public class BitcoinNetworkEvents implements WalletEventListener, PeerEventListe
     public BlockchainDownloadProgress getBlockchainDownloadProgress(){
         return blockchainDownloadProgress;
     }
+
 }
 

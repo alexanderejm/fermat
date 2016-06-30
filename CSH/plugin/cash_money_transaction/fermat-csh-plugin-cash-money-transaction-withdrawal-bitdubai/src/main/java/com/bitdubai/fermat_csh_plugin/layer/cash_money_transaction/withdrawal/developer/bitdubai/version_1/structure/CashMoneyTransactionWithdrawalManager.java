@@ -16,8 +16,8 @@ import com.bitdubai.fermat_csh_api.layer.csh_wallet.interfaces.CashMoneyWallet;
 import com.bitdubai.fermat_csh_api.layer.csh_wallet.interfaces.CashMoneyWalletManager;
 import com.bitdubai.fermat_csh_plugin.layer.cash_money_transaction.withdrawal.developer.bitdubai.version_1.database.WithdrawalCashMoneyTransactionDao;
 import com.bitdubai.fermat_csh_plugin.layer.cash_money_transaction.withdrawal.developer.bitdubai.version_1.exceptions.CantInitializeWithdrawalCashMoneyTransactionDatabaseException;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.UUID;
 
@@ -69,8 +69,10 @@ public class CashMoneyTransactionWithdrawalManager implements CashWithdrawalTran
         }
 
         try{
-            wallet.getAvailableBalance().debit(withdrawalParameters.getTransactionId(), withdrawalParameters.getPublicKeyActor(), withdrawalParameters.getPublicKeyPlugin(), withdrawalParameters.getAmount(), withdrawalParameters.getMemo());
-            wallet.getBookBalance().debit(withdrawalParameters.getTransactionId(), withdrawalParameters.getPublicKeyActor(), withdrawalParameters.getPublicKeyPlugin(), withdrawalParameters.getAmount(), withdrawalParameters.getMemo());
+            // TODO - Se le esta colocando un random ID pra que sea unico. Por favor revisar esto
+            wallet.getAvailableBalance().debit(UUID.randomUUID(), withdrawalParameters.getPublicKeyActor(), withdrawalParameters.getPublicKeyPlugin(), withdrawalParameters.getAmount(), withdrawalParameters.getMemo());
+            // TODO - Se le esta colocando un random ID pra que sea unico. Por favor revisar esto
+            wallet.getBookBalance().debit(UUID.randomUUID(), withdrawalParameters.getPublicKeyActor(), withdrawalParameters.getPublicKeyPlugin(), withdrawalParameters.getAmount(), withdrawalParameters.getMemo());
 
         } catch (CantGetCashMoneyWalletBalanceException e) {
             errorManager.reportUnexpectedPluginException(Plugins.BITDUBAI_CSH_MONEY_TRANSACTION_WITHDRAWAL, UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, e);

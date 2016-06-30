@@ -1,7 +1,6 @@
 package com.bitdubai.fermat_api.layer.all_definition.navigation_structure;
 
 
-import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.WizardTypes;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.interfaces.FermatTabStrip;
 
 import java.util.ArrayList;
@@ -12,6 +11,7 @@ import java.util.Map;
 
 /**
  * Created by Matias Furszyfer on 2015.07.17..
+ * Update by Miguel Payarez on 2016.04.08
  */
 
 public class TabStrip implements FermatTabStrip {
@@ -38,6 +38,8 @@ public class TabStrip implements FermatTabStrip {
 
     int backgroundResource;
 
+    String selectedTabTextColor;
+
     String tabsColor;
 
     String tabsTextColor;
@@ -49,6 +51,8 @@ public class TabStrip implements FermatTabStrip {
     boolean hasText;
 
     int startItem;
+
+    boolean reduceTabHeight;
 
     List<Tab> tabs = new ArrayList<>();
 
@@ -62,7 +66,7 @@ public class TabStrip implements FermatTabStrip {
     public TabStrip() {
     }
 
-    public TabStrip(int dividerColor, int indicatorColor, int indicatorHeight, int backgroundColor, int textColor, int backgroundResource, String tabsColor, String tabsTextColor, String tabsIndicateColor, List<Tab> tabs) {
+    public TabStrip(int dividerColor, int indicatorColor, int indicatorHeight, int backgroundColor, int textColor, int backgroundResource, String tabsColor, String tabsTextColor, String tabsIndicateColor, List<Tab> tabs,String selectedTabTextColor) {
         this.dividerColor = dividerColor;
         this.indicatorColor = indicatorColor;
         this.indicatorHeight = indicatorHeight;
@@ -73,6 +77,7 @@ public class TabStrip implements FermatTabStrip {
         this.tabsTextColor = tabsTextColor;
         this.tabsIndicateColor = tabsIndicateColor;
         this.tabs = tabs;
+        this.selectedTabTextColor=selectedTabTextColor;
     }
 
     /**
@@ -103,9 +108,7 @@ public class TabStrip implements FermatTabStrip {
 
 
     @Override
-    public int getTextColor() {
-        return textColor;
-    }
+    public int getTextColor() {return textColor;    }
 
 
     @Override
@@ -131,11 +134,14 @@ public class TabStrip implements FermatTabStrip {
         return tabsIndicateColor;
     }
 
+    public String getSelectedTabTextColor() {return selectedTabTextColor;}
 
     @Override
     public List<Tab> getTabs() {
         return tabs;
     }
+
+    public boolean isReduceTabHeight(){return reduceTabHeight;}
 
     /**
      * TabStrip class setters
@@ -164,6 +170,9 @@ public class TabStrip implements FermatTabStrip {
     public void setTextColor(int textColor) {
         this.textColor = textColor;
     }
+
+    @Override
+    public void setSelectTabTextColor(String selectTabTextColor) {this.selectedTabTextColor = selectTabTextColor;}
 
     @Override
     public void setBackgroundResource(int backgroundResource) {
@@ -212,6 +221,8 @@ public class TabStrip implements FermatTabStrip {
     public void setHasText(boolean hasText) {
         this.hasText = hasText;
     }
+
+    public void setReduceTabHeight(boolean reduceTabHeight){this.reduceTabHeight=reduceTabHeight;}
 
     /**
      * Add wizard to attach to this Tab

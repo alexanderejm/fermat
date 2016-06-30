@@ -19,10 +19,8 @@ import com.bitdubai.fermat_android_api.ui.dialogs.FermatDialog;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantGetSettingsException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantPersistSettingsException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.SettingsNotFoundException;
-import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
 import com.bitdubai.fermat_ccp_api.layer.identity.intra_user.exceptions.CantCreateNewIntraWalletUserException;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.BitcoinWalletSettings;
-import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.exceptions.CantGetCryptoWalletException;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.interfaces.CryptoWallet;
 import com.bitdubai.fermat_pip_api.layer.network_service.subapp_resources.SubAppResourcesProviderManager;
 import com.bitdubai.reference_niche_wallet.bitcoin_wallet.session.ReferenceWalletSession;
@@ -37,6 +35,7 @@ public class PresentationBitcoinWalletDialog extends FermatDialog<ReferenceWalle
 
     public static final int TYPE_PRESENTATION =1;
     public static final int TYPE_PRESENTATION_WITHOUT_IDENTITIES =2;
+    private static final String TAG = "WelcomeWallet";
 
     private final Activity activity;
     private final int type;
@@ -143,11 +142,11 @@ public class PresentationBitcoinWalletDialog extends FermatDialog<ReferenceWalle
 
         if(id == R.id.btn_left){
             try {
-                getSession().getModuleManager().getCryptoWallet().createIntraUser("John Doe","Available",convertImage(R.drawable.ic_profile_male));
+                getSession().getModuleManager().createIntraUser("John Doe", "Available", convertImage(R.drawable.ic_profile_male));
                 getSession().setData(SessionConstant.PRESENTATION_IDENTITY_CREATED, Boolean.TRUE);
             } catch (CantCreateNewIntraWalletUserException e) {
                 e.printStackTrace();
-            } catch (CantGetCryptoWalletException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             saveSettings();
@@ -155,7 +154,7 @@ public class PresentationBitcoinWalletDialog extends FermatDialog<ReferenceWalle
         }
         else if(id == R.id.btn_right){
             try {
-                final CryptoWallet cryptoWallet = getSession().getModuleManager().getCryptoWallet();
+                final CryptoWallet cryptoWallet = getSession().getModuleManager();
                 //cryptoWallet.createIntraUser("Jane Doe", "Available", null);
 
                 getSession().setData(SessionConstant.PRESENTATION_IDENTITY_CREATED, Boolean.TRUE);
@@ -168,7 +167,7 @@ public class PresentationBitcoinWalletDialog extends FermatDialog<ReferenceWalle
                             e.printStackTrace();
                         }
 
-            } catch (CantGetCryptoWalletException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             saveSettings();
@@ -183,16 +182,17 @@ public class PresentationBitcoinWalletDialog extends FermatDialog<ReferenceWalle
         if(type!=TYPE_PRESENTATION)
         if(checkButton == checkbox_not_show.isChecked()  || checkButton == !checkbox_not_show.isChecked())
         if(checkbox_not_show.isChecked()){
-            SettingsManager<BitcoinWalletSettings> settingsManager = getSession().getModuleManager().getSettingsManager();
             try {
-                BitcoinWalletSettings bitcoinWalletSettings = settingsManager.loadAndGetSettings(getSession().getAppPublicKey());
-                bitcoinWalletSettings.setIsPresentationHelpEnabled(false);
-                settingsManager.persistSettings(getSession().getAppPublicKey(),bitcoinWalletSettings);
+                    BitcoinWalletSettings bitcoinWalletSettings = getSession().getModuleManager().loadAndGetSettings(getSession().getAppPublicKey());
+                    bitcoinWalletSettings.setIsPresentationHelpEnabled(false);
+                    getSession().getModuleManager().persistSettings(getSession().getAppPublicKey(), bitcoinWalletSettings);
             } catch (CantGetSettingsException e) {
                 e.printStackTrace();
             } catch (SettingsNotFoundException e) {
                 e.printStackTrace();
             } catch (CantPersistSettingsException e) {
+                e.printStackTrace();
+            } catch (Exception e){
                 e.printStackTrace();
             }
         }

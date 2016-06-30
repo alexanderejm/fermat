@@ -6,7 +6,7 @@ import com.bitdubai.fermat_cbp_api.layer.negotiation.customer_broker_purchase.in
 import com.bitdubai.fermat_cbp_api.layer.network_service.transaction_transmission.interfaces.TransactionTransmissionManager;
 import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.customer_online_payment.developer.bitdubai.version_1.database.CustomerOnlinePaymentBusinessTransactionDao;
 import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.customer_online_payment.developer.bitdubai.version_1.structure.CustomerOnlinePaymentTransactionManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import static org.junit.Assert.assertEquals;
 
@@ -38,14 +38,14 @@ public class parseToLongTest {
     }
     @Test
     public void parseToLongTest_Should_Return_Long() throws  Exception{
-        assertEquals(customerOnlinePaymentTransactionManager.parseToLong("1"),1);
+        assertEquals(customerOnlinePaymentTransactionManager.parseToCryptoAmountFormat("1"),1);
     }
     @Test(expected = InvalidParameterException.class)
     public void parseToLongTest_Should_Throw_Null_InvalidParameterException() throws  Exception{
-        customerOnlinePaymentTransactionManager.parseToLong(null);
+        customerOnlinePaymentTransactionManager.parseToCryptoAmountFormat(null);
     }
     @Test(expected = InvalidParameterException.class)
     public void parseToLongTest_Should_Return_Exception() throws  Exception{
-        customerOnlinePaymentTransactionManager.parseToLong("Test");
+        customerOnlinePaymentTransactionManager.parseToCryptoAmountFormat("Test");
     }
 }

@@ -17,18 +17,21 @@ import com.bitdubai.fermat_api.layer.all_definition.enums.Platforms;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Plugins;
 import com.bitdubai.fermat_api.layer.all_definition.enums.ServiceStatus;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
-import com.bitdubai.fermat_api.layer.all_definition.util.XMLParser;
+import com.bitdubai.fermat_api.layer.core.PluginInfo;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.PluginDatabaseSystem;
 import com.bitdubai.fermat_api.layer.osa_android.file_system.PluginFileSystem;
 import com.bitdubai.fermat_api.layer.osa_android.logger_system.LogLevel;
 import com.bitdubai.fermat_api.layer.osa_android.logger_system.LogManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_pip_api.layer.user.device_user.interfaces.DeviceUserManager;
 import com.bitdubai.fermat_tky_api.all_definitions.enums.ArtistAcceptConnectionsType;
 import com.bitdubai.fermat_tky_api.all_definitions.enums.ExposureLevel;
 import com.bitdubai.fermat_tky_api.all_definitions.enums.ExternalPlatform;
 import com.bitdubai.fermat_tky_api.all_definitions.exceptions.IdentityNotFoundException;
+import com.bitdubai.fermat_tky_api.all_definitions.exceptions.WrongTokenlyUserCredentialsException;
+import com.bitdubai.fermat_tky_api.all_definitions.interfaces.User;
+import com.bitdubai.fermat_tky_api.layer.external_api.exceptions.CantGetUserException;
 import com.bitdubai.fermat_tky_api.layer.external_api.interfaces.TokenlyApiManager;
 import com.bitdubai.fermat_tky_api.layer.identity.artist.exceptions.ArtistIdentityAlreadyExistsException;
 import com.bitdubai.fermat_tky_api.layer.identity.artist.exceptions.CantCreateArtistIdentityException;
@@ -39,7 +42,6 @@ import com.bitdubai.fermat_tky_api.layer.identity.artist.interfaces.Artist;
 import com.bitdubai.fermat_tky_api.layer.identity.artist.interfaces.TokenlyArtistIdentityManager;
 import com.bitdubai.fermat_tky_plugin.layer.identity.artist_identity.developer.bitdubai.version_1.database.TokenlyArtistIdentityDeveloperDatabaseFactory;
 import com.bitdubai.fermat_tky_plugin.layer.identity.artist_identity.developer.bitdubai.version_1.exceptions.CantInitializeTokenlyArtistIdentityDatabaseException;
-import com.bitdubai.fermat_tky_plugin.layer.identity.artist_identity.developer.bitdubai.version_1.structure.TokenlyArtistIdentityImp;
 import com.bitdubai.fermat_tky_plugin.layer.identity.artist_identity.developer.bitdubai.version_1.structure.TokenlyIdentityArtistManagerImpl;
 
 import java.util.ArrayList;
@@ -47,11 +49,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 
 /**
  * Created by Gabriel Araujo on 10/03/16.
  */
+@PluginInfo(difficulty = PluginInfo.Dificulty.MEDIUM, maintainerMail = "gabe_512@hotmail.com", createdBy = "gabohub", layer = Layers.IDENTITY, platform = Platforms.TOKENLY, plugin = Plugins.TOKENLY_ARTIST)
 public class TokenlyArtistIdentityPluginRoot extends AbstractPlugin implements
         DatabaseManagerForDevelopers,
         TokenlyArtistIdentityManager,
@@ -117,18 +121,21 @@ public class TokenlyArtistIdentityPluginRoot extends AbstractPlugin implements
 
     private void testCreateArtist(){
         try {
-            String alias = "Gabo";
+            String alias = "username";
             byte[] image = new byte[0];
-            String externalName = "El gabo artist";
-            String externalAccessToken = "El access token";
+            String password = "password";
             ExternalPlatform externalPlatform = ExternalPlatform.TOKENLY;
             ExposureLevel exposureLevel = ExposureLevel.PRIVATE;
             ArtistAcceptConnectionsType artistAcceptConnectionsType = ArtistAcceptConnectionsType.MANUAL;
-            Artist artist = createArtistIdentity(alias,image,externalName,externalAccessToken,externalPlatform,exposureLevel,artistAcceptConnectionsType);
+            Artist artist = createArtistIdentity(alias,image,password,externalPlatform,exposureLevel,artistAcceptConnectionsType);
             Artist artist1 = getArtistIdentity(artist.getId());
+
             System.out.println("##############################\n");
-            System.out.println("artist1 = " + XMLParser.parseObject(new TokenlyArtistIdentityImp(artist1.getAlias(),artist1.getId(),artist1.getPublicKey(),artist1.getProfileImage(),artist1.getExternalUsername(),
-                    artist1.getExternalAccesToken(),artist1.getExternalPlatform(),artist1.getExposureLevel(),artist1.getArtistAcceptConnectionsType())));
+            System.out.println("artist1 = " + artist1);
+//            System.out.println("artist1 ="+ XMLParser.parseObject(new TokenlyArtistIdentityImp(artist1.getId(),artist1.getTokenlyId(),artist1.getPublicKey(),artist1.getProfileImage(),artist1.getUsername(),
+//                            artist1.getApiToken(),artist1.getApiSecretKey(),artist1.getExternalPlatform(),artist1.getExposureLevel(),artist1.getArtistAcceptConnectionsType())));
+//
+//            )
         } catch (CantCreateArtistIdentityException | ArtistIdentityAlreadyExistsException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -153,9 +160,18 @@ public class TokenlyArtistIdentityPluginRoot extends AbstractPlugin implements
     }
 
     @Override
-    public Artist createArtistIdentity(String alias, byte[] profileImage, String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform, ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) throws CantCreateArtistIdentityException, ArtistIdentityAlreadyExistsException {
-        if(tokenlyApiManager.isTokenlyAccessVaild(externalUserName,externalAccessToken)){
-            return identityArtistManager.createNewIdentityArtist(alias,profileImage,externalUserName,externalAccessToken,externalPlatform,exposureLevel,artistAcceptConnectionsType);
+    public Artist createArtistIdentity(String userName, byte[] profileImage, String password,ExternalPlatform externalPlatform,
+                                       ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) throws CantCreateArtistIdentityException, ArtistIdentityAlreadyExistsException, WrongTokenlyUserCredentialsException {
+        //TODO: Fix this Gabo. Manuel
+        User user=null;
+        try{
+            if(externalPlatform == ExternalPlatform.DEFAULT_EXTERNAL_PLATFORM)
+                user = tokenlyApiManager.validateTokenlyUser(userName, password);
+        } catch (CantGetUserException | InterruptedException | ExecutionException  e) {
+            e.printStackTrace();
+        }
+        if(user!=null){
+            return identityArtistManager.createNewIdentityArtist(user,password,profileImage,externalPlatform,exposureLevel,artistAcceptConnectionsType);
         }else{
             return null;
         }
@@ -163,8 +179,18 @@ public class TokenlyArtistIdentityPluginRoot extends AbstractPlugin implements
 
 
     @Override
-    public void updateArtistIdentity(String alias, UUID id,String publicKey, byte[] profileImage, String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform, ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) throws CantUpdateArtistIdentityException {
-        identityArtistManager.updateIdentityArtist(alias,id,publicKey,profileImage,externalUserName,externalAccessToken,externalPlatform,exposureLevel,artistAcceptConnectionsType);
+    public Artist updateArtistIdentity(String username, String password, UUID id, String publicKey, byte[] profileImage, ExternalPlatform externalPlatform,
+                                       ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) throws CantUpdateArtistIdentityException, WrongTokenlyUserCredentialsException {
+        User user=null;
+        try{
+            if(externalPlatform == ExternalPlatform.DEFAULT_EXTERNAL_PLATFORM)
+                user = tokenlyApiManager.validateTokenlyUser(username, password);
+        } catch (CantGetUserException |InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        if(user != null)
+            return identityArtistManager.updateIdentityArtist(user, password, id, publicKey, profileImage, externalPlatform,exposureLevel,artistAcceptConnectionsType);
+        return null;
     }
 
     @Override

@@ -27,12 +27,10 @@ import com.bitdubai.fermat_api.layer.all_definition.money.CryptoAddress;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantGetSettingsException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantPersistSettingsException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.SettingsNotFoundException;
-import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.BitcoinWalletSettings;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.exceptions.CantCreateWalletContactException;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.interfaces.CryptoWallet;
-
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedUIExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedUIExceptionSeverity;
 import com.bitdubai.fermat_wpd_api.layer.wpd_network_service.wallet_resources.interfaces.WalletResourcesProviderManager;
 import com.bitdubai.reference_niche_wallet.bitcoin_wallet.common.CreateContactDialogCallback;
 import com.bitdubai.reference_niche_wallet.bitcoin_wallet.common.bar_code_scanner.IntentIntegrator;
@@ -65,7 +63,6 @@ public class CreateContactFragmentDialog extends Dialog implements
      */
     private WalletResourcesProviderManager walletResourcesProviderManager;
     private ReferenceWalletSession referenceWalletSession;
-    SettingsManager<BitcoinWalletSettings> settingsManager;
     BlockchainNetworkType blockchainNetworkType;
 
     /**
@@ -114,10 +111,9 @@ public class CreateContactFragmentDialog extends Dialog implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setUpScreenComponents();
-        settingsManager = referenceWalletSession.getModuleManager().getSettingsManager();
         BitcoinWalletSettings bitcoinWalletSettings = null;
         try {
-            bitcoinWalletSettings = settingsManager.loadAndGetSettings(referenceWalletSession.getAppPublicKey());
+            bitcoinWalletSettings = referenceWalletSession.getModuleManager().loadAndGetSettings(referenceWalletSession.getAppPublicKey());
         } catch (CantGetSettingsException e) {
             e.printStackTrace();
         } catch (SettingsNotFoundException e) {
@@ -130,7 +126,7 @@ public class CreateContactFragmentDialog extends Dialog implements
                 bitcoinWalletSettings.setBlockchainNetworkType(BlockchainNetworkType.getDefaultBlockchainNetworkType());
             }
             try {
-                settingsManager.persistSettings(referenceWalletSession.getAppPublicKey(), bitcoinWalletSettings);
+                referenceWalletSession.getModuleManager().persistSettings(referenceWalletSession.getAppPublicKey(), bitcoinWalletSettings);
             } catch (CantPersistSettingsException e) {
                 e.printStackTrace();
             }
@@ -138,7 +134,7 @@ public class CreateContactFragmentDialog extends Dialog implements
         }
 
         try {
-            blockchainNetworkType = settingsManager.loadAndGetSettings(referenceWalletSession.getAppPublicKey()).getBlockchainNetworkType();
+            blockchainNetworkType = referenceWalletSession.getModuleManager().loadAndGetSettings(referenceWalletSession.getAppPublicKey()).getBlockchainNetworkType();
         } catch (CantGetSettingsException e) {
             e.printStackTrace();
         } catch (SettingsNotFoundException e) {
@@ -228,7 +224,7 @@ public class CreateContactFragmentDialog extends Dialog implements
     private void saveContact() {
         try {
 
-            CryptoWallet cryptoWallet = referenceWalletSession.getModuleManager().getCryptoWallet();
+            CryptoWallet cryptoWallet = referenceWalletSession.getModuleManager();
 
             CryptoAddress validAddress = validateAddress(txt_address.getText().toString(), cryptoWallet);
 
@@ -300,7 +296,7 @@ public class CreateContactFragmentDialog extends Dialog implements
                 mPasteItem.setEnabled(true);
                 ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
                 EditText editText = (EditText) findViewById(R.id.txt_address);
-                CryptoAddress validAddress = validateAddress(item.getText().toString(), referenceWalletSession.getModuleManager().getCryptoWallet());
+                CryptoAddress validAddress = validateAddress(item.getText().toString(), referenceWalletSession.getModuleManager());
                 if (validAddress != null) {
                     editText.setText(validAddress.getAddress());
                 } else {

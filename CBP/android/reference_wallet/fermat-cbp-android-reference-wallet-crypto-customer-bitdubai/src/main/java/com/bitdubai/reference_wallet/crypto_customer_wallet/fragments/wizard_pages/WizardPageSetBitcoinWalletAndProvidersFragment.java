@@ -2,15 +2,20 @@ package com.bitdubai.reference_wallet.crypto_customer_wallet.fragments.wizard_pa
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -28,15 +33,14 @@ import com.bitdubai.fermat_api.layer.pip_engine.interfaces.ResourceProviderManag
 import com.bitdubai.fermat_api.layer.world.interfaces.Currency;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.MoneyType;
 import com.bitdubai.fermat_cbp_api.layer.identity.crypto_customer.interfaces.CryptoCustomerIdentity;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_customer.interfaces.CryptoCustomerWalletManager;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_customer.interfaces.CryptoCustomerWalletModuleManager;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_customer.interfaces.settings.CryptoCustomerWalletAssociatedSetting;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_customer.interfaces.settings.CryptoCustomerWalletPreferenceSettings;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_customer.interfaces.settings.CryptoCustomerWalletProviderSetting;
 import com.bitdubai.fermat_cer_api.layer.provider.exceptions.CantGetProviderInfoException;
 import com.bitdubai.fermat_cer_api.layer.provider.interfaces.CurrencyExchangeRateProviderManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_wpd_api.layer.wpd_middleware.wallet_manager.exceptions.CantListWalletsException;
 import com.bitdubai.fermat_wpd_api.layer.wpd_middleware.wallet_manager.interfaces.InstalledWallet;
 import com.bitdubai.reference_wallet.crypto_customer_wallet.R;
@@ -71,13 +75,15 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
     private List<InstalledWallet> bitcoinWallets;
     private InstalledWallet selectedBitcoinWallet;
     private CryptoCustomerIdentity selectedIdentity;
+    private boolean walletConfigured;
+
 
     // UI
     private RecyclerView recyclerView;
     private FermatTextView emptyView;
+    private LinearLayout fragmentContainer;
 
     // Fermat Managers
-    private CryptoCustomerWalletManager walletManager;
     private CryptoCustomerWalletModuleManager moduleManager;
     private ErrorManager errorManager;
     private ProvidersAdapter adapter;
@@ -93,12 +99,11 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
 
         selectedProviders = new ArrayList<>();
         currencies = getCurrenciesList();
-        moduleManager = appSession.getModuleManager();
 
         try {
-            walletManager = moduleManager.getCryptoCustomerWallet(appSession.getAppPublicKey());
+            moduleManager = appSession.getModuleManager();
             errorManager = appSession.getErrorManager();
-            bitcoinWallets = getBitcoinWallets(walletManager);
+            bitcoinWallets = getBitcoinWallets(moduleManager);
 
             //Obtain walletSettings or create new walletSettings if first time opening wallet/wizard
             CryptoCustomerWalletPreferenceSettings walletSettings;
@@ -113,9 +118,10 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
 
 
             // Verify if wallet has been configured, if it is, go to wallet's home!
-            if (walletSettings.isWalletConfigured()) {
-                getRuntimeManager().changeStartActivity(1);
-                changeActivity(Activities.CBP_CRYPTO_CUSTOMER_WALLET_HOME, appSession.getAppPublicKey());
+            walletConfigured = walletSettings.isWalletConfigured();
+            if (walletConfigured) {
+                //getRuntimeManager().changeStartActivity(1);
+                //changeActivity(Activities.CBP_CRYPTO_CUSTOMER_WALLET_HOME, appSession.getAppPublicKey());
                 return;
             }
 
@@ -123,8 +129,8 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
 
             //Delete potential previous configurations made by this wizard page
             //So that they can be reconfigured cleanly
-            walletManager.clearAssociatedIdentities(appSession.getAppPublicKey());
-            walletManager.clearCryptoCustomerWalletProviderSetting(appSession.getAppPublicKey());
+            moduleManager.clearAssociatedIdentities(appSession.getAppPublicKey());
+            moduleManager.clearCryptoCustomerWalletProviderSetting(appSession.getAppPublicKey());
 
 
         } catch (Exception ex) {
@@ -143,6 +149,8 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
 
         final View layout = inflater.inflate(R.layout.ccw_wizard_step_set_bitcoin_wallet_and_providers, container, false);
 
+        configureToolbar();
+
         recyclerView = (RecyclerView) layout.findViewById(R.id.ccw_selected_providers_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
 
@@ -151,6 +159,7 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
         recyclerView.setAdapter(adapter);
 
         emptyView = (FermatTextView) layout.findViewById(R.id.ccw_selected_providers_empty_view);
+        fragmentContainer = (LinearLayout) layout.findViewById(R.id.ccw_fragment_container);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), R.layout.ccw_spinner_item, getFormattedCurrencies(currencies));
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -186,42 +195,69 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
             }
         });
 
-        showHelpDialog();
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //If wallet already configured, go directly to wallet
+                if (walletConfigured) {
+                    changeActivity(Activities.CBP_CRYPTO_CUSTOMER_WALLET_HOME, appSession.getAppPublicKey());
+                } else {  //otherwise, show wizard page
+                    fragmentContainer.setVisibility(View.VISIBLE);
+                    showHelpDialog();
+                }
+            }
+        }, 250);
 
         return layout;
+    }
+
+    private void configureToolbar() {
+        Toolbar toolbar = getToolbar();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            toolbar.setBackground(getResources().getDrawable(R.drawable.ccw_action_bar_gradient_colors, null));
+        else
+            toolbar.setBackground(getResources().getDrawable(R.drawable.ccw_action_bar_gradient_colors));
+
+        toolbar.setTitleTextColor(Color.WHITE);
+        toolbar.setTitle("Prueba");
+
+        System.out.println("toolbar: "+toolbar.toString());
     }
 
     private void showHelpDialog() {
 
         try {
-            final boolean haveAssociatedIdentity = walletManager.haveAssociatedIdentity(appSession.getAppPublicKey());
+            final boolean haveAssociatedIdentity = moduleManager.haveAssociatedIdentity(appSession.getAppPublicKey());
             if (haveAssociatedIdentity)
                 return;
 
             PresentationDialog presentationDialog;
 
-            if (walletManager.getListOfIdentities().isEmpty()) {
+            if (moduleManager.getListOfIdentities().isEmpty()) {
                 presentationDialog = new PresentationDialog.Builder(getActivity(), appSession)
                         .setTemplateType(PresentationDialog.TemplateType.TYPE_PRESENTATION)
                         .setBannerRes(R.drawable.cbp_banner_crypto_customer_wallet)
                         .setIconRes(R.drawable.cbp_crypto_customer)
-                        .setBody(R.string.cbw_wizard_providers_dialog_body)
-                        .setSubTitle(R.string.cbw_wizard_providers_dialog_sub_title)
-                        .setTextFooter(R.string.cbw_wizard_providers_dialog_footer)
+                        .setSubTitle(R.string.ccw_wizard_providers_dialog_sub_title)
+                        .setBody(R.string.ccw_wizard_providers_dialog_body)
+                        .setTextFooter(R.string.ccw_wizard_providers_dialog_footer)
+                        .setCheckboxText(R.string.ccw_wizard_not_show_text)
                         .build();
                 presentationDialog.setOnDismissListener(this);
-                presentationDialog.show();                              //ALWAYS SHOW THIS, there are NO identities!!
+                presentationDialog.show();
 
             } else {
-                selectedIdentity = walletManager.getListOfIdentities().get(0);
+                selectedIdentity = moduleManager.getListOfIdentities().get(0);
 
                 presentationDialog = new PresentationDialog.Builder(getActivity(), appSession)
+                        .setTemplateType(PresentationDialog.TemplateType.TYPE_PRESENTATION_WITHOUT_IDENTITIES)
                         .setBannerRes(R.drawable.cbp_banner_crypto_customer_wallet)
                         .setIconRes(R.drawable.cbp_crypto_customer)
-                        .setBody(R.string.cbw_wizard_providers_dialog_body)
-                        .setSubTitle(R.string.cbw_wizard_providers_dialog_sub_title)
-                        .setTextFooter(R.string.cbw_wizard_providers_dialog_footer)
-                        .setTemplateType(PresentationDialog.TemplateType.TYPE_PRESENTATION_WITHOUT_IDENTITIES)
+                        .setSubTitle(R.string.ccw_wizard_providers_dialog_sub_title)
+                        .setBody(R.string.ccw_wizard_providers_dialog_body)
+                        .setCheckboxText(R.string.ccw_wizard_not_show_text)
                         .build();
                 presentationDialog.setOnDismissListener(this);
 
@@ -248,7 +284,7 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
     public void onDismiss(DialogInterface dialogInterface) {
 
         try {
-            List<CryptoCustomerIdentity> listOfIdentities = walletManager.getListOfIdentities();
+            List<CryptoCustomerIdentity> listOfIdentities = moduleManager.getListOfIdentities();
             if (listOfIdentities.isEmpty())
                 getActivity().onBackPressed();
             else {
@@ -284,16 +320,25 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
 
     private void showProvidersDialog() {
 
+        if (currencyFrom == currencyTo) {
+            Toast.makeText(getActivity(), R.string.ccw_same_currencies_providers_warning_msg, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         try {
             List<CurrencyPairAndProvider> providers = new ArrayList<>();
 
-            Map<String, CurrencyExchangeRateProviderManager> providersMap = walletManager.getProviderReferencesFromCurrencyPair(currencyFrom, currencyTo);
+            Map<String, CurrencyExchangeRateProviderManager> providersMap = moduleManager.getProviderReferencesFromCurrencyPair(currencyFrom, currencyTo);
             if (providersMap != null) {
                 Collection<CurrencyExchangeRateProviderManager> providerManagers = providersMap.values();
                 for (CurrencyExchangeRateProviderManager providerManager : providerManagers)
                     providers.add(new CurrencyPairAndProvider(currencyFrom, currencyTo, providerManager));
             }
 
+            if(providers.size() == 0){
+                Toast.makeText(getActivity(), R.string.ccw_no_providers_for_chosen_currencies_msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             final SimpleListDialogFragment<CurrencyPairAndProvider> dialogFragment = new SimpleListDialogFragment<>();
             dialogFragment.configure("Select a Provider", providers);
@@ -328,9 +373,9 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
         }
 
         try {
-            walletManager.associateIdentity(selectedIdentity, appSession.getAppPublicKey());
+            moduleManager.associateIdentity(selectedIdentity, appSession.getAppPublicKey());
 
-            final CryptoCustomerWalletAssociatedSetting associatedWallet = walletManager.newEmptyCryptoBrokerWalletAssociatedSetting();
+            final CryptoCustomerWalletAssociatedSetting associatedWallet = moduleManager.newEmptyCryptoBrokerWalletAssociatedSetting();
             associatedWallet.setId(UUID.randomUUID());
             associatedWallet.setMoneyType(MoneyType.CRYPTO);
             associatedWallet.setMerchandise(selectedBitcoinWallet.getCryptoCurrency());
@@ -338,12 +383,12 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
             associatedWallet.setWalletPublicKey(selectedBitcoinWallet.getWalletPublicKey());
             associatedWallet.setCustomerPublicKey(appSession.getAppPublicKey());
 
-            walletManager.saveWalletSettingAssociated(associatedWallet, appSession.getAppPublicKey());
+            moduleManager.saveWalletSettingAssociated(associatedWallet, appSession.getAppPublicKey());
 
             for (CurrencyPairAndProvider provider : selectedProviders) {
                 CurrencyExchangeRateProviderManager providerManager = provider.getProvider();
 
-                CryptoCustomerWalletProviderSetting setting = walletManager.newEmptyCryptoCustomerWalletProviderSetting();
+                CryptoCustomerWalletProviderSetting setting = moduleManager.newEmptyCryptoCustomerWalletProviderSetting();
                 setting.setCustomerPublicKey(appSession.getAppPublicKey());
                 setting.setDescription(providerManager.getProviderName());
                 setting.setId(providerManager.getProviderId());
@@ -351,7 +396,7 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
                 setting.setCurrencyFrom(provider.getCurrencyFrom());
                 setting.setCurrencyTo(provider.getCurrencyTo());
 
-                walletManager.saveCryptoCustomerWalletProviderSetting(setting, appSession.getAppPublicKey());
+                moduleManager.saveCryptoCustomerWalletProviderSetting(setting, appSession.getAppPublicKey());
             }
 
         } catch (Exception ex){
@@ -447,11 +492,11 @@ public class WizardPageSetBitcoinWalletAndProvidersFragment extends AbstractFerm
         return data;
     }
 
-    private List<InstalledWallet> getBitcoinWallets(CryptoCustomerWalletManager walletManager) {
+    private List<InstalledWallet> getBitcoinWallets(CryptoCustomerWalletModuleManager moduleManager) {
         ArrayList<InstalledWallet> data = new ArrayList<>();
 
         try {
-            List<InstalledWallet> installedWallets = walletManager.getInstallWallets();
+            List<InstalledWallet> installedWallets = moduleManager.getInstallWallets();
 
             if (installedWallets != null)
                 for (InstalledWallet wallet : installedWallets)

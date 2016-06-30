@@ -6,8 +6,8 @@
  */
 package com.bitdubai.fermat_api.layer.all_definition.components.interfaces;
 
-import com.bitdubai.fermat_api.layer.all_definition.network_service.enums.NetworkServiceType;
 import com.bitdubai.fermat_api.layer.all_definition.components.enums.PlatformComponentType;
+import com.bitdubai.fermat_api.layer.all_definition.network_service.enums.NetworkServiceType;
 import com.bitdubai.fermat_api.layer.osa_android.location_system.Location;
 
 /**
@@ -34,9 +34,6 @@ public interface DiscoveryQueryParameters {
      * @return String
      */
     String getAlias();
-
-
-
 
     /**
      * Get the name

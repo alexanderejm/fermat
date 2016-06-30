@@ -15,13 +15,13 @@ import com.bitdubai.fermat_api.layer.all_definition.enums.Layers;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Platforms;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Plugins;
 import com.bitdubai.fermat_api.layer.all_definition.enums.ServiceStatus;
-import com.bitdubai.fermat_api.layer.all_definition.enums.VaultType;
 import com.bitdubai.fermat_api.layer.all_definition.money.CryptoAddress;
 import com.bitdubai.fermat_api.layer.all_definition.transaction_transference_protocol.TransactionProtocolManager;
 import com.bitdubai.fermat_api.layer.all_definition.transaction_transference_protocol.crypto_transactions.CryptoStatus;
 import com.bitdubai.fermat_api.layer.all_definition.transaction_transference_protocol.crypto_transactions.CryptoTransaction;
 import com.bitdubai.fermat_api.layer.all_definition.transaction_transference_protocol.crypto_transactions.CryptoTransactionType;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
+import com.bitdubai.fermat_api.layer.core.PluginInfo;
 import com.bitdubai.fermat_api.layer.osa_android.broadcaster.Broadcaster;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.PluginDatabaseSystem;
 import com.bitdubai.fermat_api.layer.osa_android.file_system.PluginFileSystem;
@@ -30,31 +30,30 @@ import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.BroadcastStatus;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.BlockchainConnectionStatus;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantBroadcastTransactionException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantCancellBroadcastTransactionException;
+import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantGetActiveBlockchainNetworkTypeException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantGetBlockchainConnectionStatusException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantGetBlockchainDownloadProgress;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantGetBroadcastStatusException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantGetCryptoTransactionException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantGetTransactionCryptoStatusException;
-import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantGetTransactionException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantMonitorBitcoinNetworkException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.exceptions.CantStoreBitcoinTransactionException;
 import com.bitdubai.fermat_bch_api.layer.crypto_network.bitcoin.interfaces.BitcoinNetworkManager;
 import com.bitdubai.fermat_bch_api.layer.crypto_vault.enums.CryptoVaults;
+import com.bitdubai.fermat_bch_plugin.layer.crypto_network.bitcoin.developer.bitdubai.version_1.database.BitcoinCryptoNetworkDatabaseDao;
 import com.bitdubai.fermat_bch_plugin.layer.crypto_network.bitcoin.developer.bitdubai.version_1.database.BitcoinCryptoNetworkDeveloperDatabaseFactory;
 import com.bitdubai.fermat_bch_plugin.layer.crypto_network.bitcoin.developer.bitdubai.version_1.exceptions.CantInitializeBitcoinCryptoNetworkDatabaseException;
 import com.bitdubai.fermat_bch_plugin.layer.crypto_network.bitcoin.developer.bitdubai.version_1.structure.BitcoinCryptoNetworkEventsAgent;
 import com.bitdubai.fermat_bch_plugin.layer.crypto_network.bitcoin.developer.bitdubai.version_1.structure.BitcoinCryptoNetworkManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 
 import org.bitcoinj.core.ECKey;
 import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.UTXOProvider;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -62,6 +61,7 @@ import javax.annotation.Nullable;
 /**
  * Created by rodrigo on 9/23/15.
  */
+@PluginInfo(difficulty = PluginInfo.Dificulty.HIGH, maintainerMail = "acosta_rodrigo@hotmail.com", createdBy = "acostarodrigo", layer = Layers.CRYPTO_NETWORK, platform = Platforms.BLOCKCHAINS, plugin = Plugins.BITDUBAI_BITCOIN_CRYPTO_NETWORK)
 public class BitcoinCryptoNetworkPluginRoot extends AbstractPlugin implements
         BitcoinNetworkManager,
         DatabaseManagerForDevelopers {
@@ -78,8 +78,12 @@ public class BitcoinCryptoNetworkPluginRoot extends AbstractPlugin implements
     @NeededAddonReference(platform = Platforms.OPERATIVE_SYSTEM_API, layer = Layers.SYSTEM, addon = Addons.PLUGIN_FILE_SYSTEM)
     private PluginFileSystem pluginFileSystem;
 
-    @NeededAddonReference(platform = Platforms.OPERATIVE_SYSTEM_API, layer = Layers.SYSTEM, addon = Addons.PLUGIN_BROADCASTER_SYSTEM)
-    Broadcaster broadcaster;
+
+
+    /**
+     * Class variables
+     */
+    BitcoinCryptoNetworkDatabaseDao dao;
 
     /**
      * Default Constructor
@@ -92,6 +96,13 @@ public class BitcoinCryptoNetworkPluginRoot extends AbstractPlugin implements
      * BitcoinNetworkManager variable
      */
     private BitcoinCryptoNetworkManager bitcoinCryptoNetworkManager;
+
+    private BitcoinCryptoNetworkDatabaseDao getDao(){
+        if (dao == null)
+                dao = new BitcoinCryptoNetworkDatabaseDao(this.pluginId, this.pluginDatabaseSystem);
+
+        return dao;
+    }
 
     /**
      * DatabaseManagerForDevelopers interface implementations
@@ -125,12 +136,12 @@ public class BitcoinCryptoNetworkPluginRoot extends AbstractPlugin implements
         /**
          * instantiate the network Manager
          */
-        bitcoinCryptoNetworkManager = new BitcoinCryptoNetworkManager(this.eventManager, this.pluginDatabaseSystem, this.pluginFileSystem, this.pluginId, this.errorManager, broadcaster);
+        bitcoinCryptoNetworkManager = new BitcoinCryptoNetworkManager(this.eventManager, this.pluginFileSystem, this.pluginId, this.errorManager, getDao());
 
         /**
          * Start the agent that will search for pending transactions to be notified.
          */
-        BitcoinCryptoNetworkEventsAgent bitcoinCryptoNetworkEventsAgent = new BitcoinCryptoNetworkEventsAgent(this.pluginDatabaseSystem, this.pluginId, this.eventManager);
+        BitcoinCryptoNetworkEventsAgent bitcoinCryptoNetworkEventsAgent = new BitcoinCryptoNetworkEventsAgent(this.eventManager, getDao());
         try {
             bitcoinCryptoNetworkEventsAgent.start();
         } catch (Exception e) {
@@ -142,6 +153,32 @@ public class BitcoinCryptoNetworkPluginRoot extends AbstractPlugin implements
          * nothing left to do.
          */
         this.serviceStatus = ServiceStatus.STARTED;
+    }
+
+    /**
+     * test method
+     */
+    private void testBlockChainConnectionStatus() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000 * 10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    for (BlockchainNetworkType networkType : getActivesBlockchainNetworkTypes()){
+                        System.out.println("***CryptoNetwork***Test " + getBlockchainConnectionStatus(networkType).toString());
+                    }
+                } catch (CantGetActiveBlockchainNetworkTypeException e) {
+                    e.printStackTrace();
+                } catch (CantGetBlockchainConnectionStatusException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
     }
 
     /**
@@ -261,6 +298,16 @@ public class BitcoinCryptoNetworkPluginRoot extends AbstractPlugin implements
     }
 
     /**
+     * Gets the active networks running on the Crypto Network
+     * @return the list of active networks {MainNet, TestNet and RegTest}
+     * @throws CantGetActiveBlockchainNetworkTypeException
+     */
+    @Override
+    public List<BlockchainNetworkType> getActivesBlockchainNetworkTypes() throws CantGetActiveBlockchainNetworkTypeException {
+       return  bitcoinCryptoNetworkManager.getActivesBlockchainNetworkTypes();
+    }
+
+    /**
      * Get the bitcoin transactions stored by the CryptoNetwork
      * @param blockchainNetworkType the network type
      * @return the bitcoin transaction
@@ -316,7 +363,7 @@ public class BitcoinCryptoNetworkPluginRoot extends AbstractPlugin implements
      */
     @Override
     public BlockchainDownloadProgress getBlockchainDownloadProgress(BlockchainNetworkType blockchainNetworkType) throws CantGetBlockchainDownloadProgress {
-        return new BlockchainDownloadProgress(blockchainNetworkType, 0,0,0,0);
+        return bitcoinCryptoNetworkManager.getBlockchainDownloadProgress(blockchainNetworkType);
     }
 
     /**

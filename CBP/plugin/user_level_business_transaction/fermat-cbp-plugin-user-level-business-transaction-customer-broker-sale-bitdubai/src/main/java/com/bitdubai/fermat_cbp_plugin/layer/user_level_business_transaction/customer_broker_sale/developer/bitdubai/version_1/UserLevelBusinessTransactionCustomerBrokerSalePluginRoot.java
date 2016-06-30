@@ -21,6 +21,7 @@ import com.bitdubai.fermat_api.layer.all_definition.enums.Plugins;
 import com.bitdubai.fermat_api.layer.all_definition.enums.ServiceStatus;
 import com.bitdubai.fermat_api.layer.all_definition.events.EventSource;
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
+import com.bitdubai.fermat_api.layer.core.PluginInfo;
 import com.bitdubai.fermat_api.layer.osa_android.broadcaster.Broadcaster;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.PluginDatabaseSystem;
 import com.bitdubai.fermat_api.layer.osa_android.logger_system.LogLevel;
@@ -40,8 +41,8 @@ import com.bitdubai.fermat_cbp_plugin.layer.user_level_business_transaction.cust
 import com.bitdubai.fermat_cbp_plugin.layer.user_level_business_transaction.customer_broker_sale.developer.bitdubai.version_1.structure.events.UserLevelBusinessTransactionCustomerBrokerSaleMonitorAgent;
 import com.bitdubai.fermat_cer_api.layer.search.interfaces.CurrencyExchangeProviderFilterManager;
 import com.bitdubai.fermat_pip_api.layer.module.notification.interfaces.NotificationManagerMiddleware;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ import java.util.regex.Pattern;
  * Created by Yordin Alayn on 16.09.15.
  * Modified by Franklin Marcano 15.12.2015
  */
-
+@PluginInfo(createdBy = "franklinmarcano1970", maintainerMail = "franklinmarcano1970@gmail.com", platform = Platforms.CRYPTO_BROKER_PLATFORM, layer = Layers.USER_LEVEL_BUSINESS_TRANSACTION, plugin = Plugins.CUSTOMER_BROKER_SALE)
 public class UserLevelBusinessTransactionCustomerBrokerSalePluginRoot extends AbstractPlugin implements
         DatabaseManagerForDevelopers,
         LogManagerForDevelopers  {
@@ -89,7 +90,7 @@ public class UserLevelBusinessTransactionCustomerBrokerSalePluginRoot extends Ab
     @NeededPluginReference(platform = Platforms.CRYPTO_BROKER_PLATFORM, layer = Layers.CONTRACT, plugin = Plugins.CONTRACT_SALE)
     CustomerBrokerContractSaleManager customerBrokerContractSaleManager;
 
-    @NeededPluginReference(platform = Platforms.CURRENCY_EXCHANGE_RATE_PLATFORM, layer = Layers.SEARCH, plugin = Plugins.BITDUBAI_CER_PROVIDER_FILTER)
+    @NeededPluginReference(platform = Platforms.CURRENCY_EXCHANGE_RATE_PLATFORM, layer = Layers.SEARCH, plugin = Plugins.FILTER)
     private CurrencyExchangeProviderFilterManager currencyExchangeRateProviderFilter;
 
     @NeededPluginReference(platform = Platforms.CRYPTO_BROKER_PLATFORM, layer = Layers.WALLET, plugin = Plugins.CRYPTO_BROKER_WALLET)
@@ -218,14 +219,15 @@ public class UserLevelBusinessTransactionCustomerBrokerSalePluginRoot extends Ab
         return developerDatabaseTableRecordList;
     }
 
-    UserLevelBusinessTransactionCustomerBrokerSaleMonitorAgent userLevelBusinessTransactionCustomerBrokerSaleMonitorAgent;
+    UserLevelBusinessTransactionCustomerBrokerSaleMonitorAgent agent;
     /**
      * This method will start the Monitor Agent that watches the asyncronic process registered in the Customer Broker Sale plugin
      * @throws CantStartAgentException
      */
     private void startMonitorAgent() throws CantStartAgentException {
-        if(userLevelBusinessTransactionCustomerBrokerSaleMonitorAgent == null) {
-            userLevelBusinessTransactionCustomerBrokerSaleMonitorAgent = new UserLevelBusinessTransactionCustomerBrokerSaleMonitorAgent(errorManager,
+        if(agent == null) {
+            agent = new UserLevelBusinessTransactionCustomerBrokerSaleMonitorAgent(
+                    errorManager,
                     customerBrokerSaleNegotiationManager,
                     pluginDatabaseSystem,
                     pluginId,
@@ -237,11 +239,11 @@ public class UserLevelBusinessTransactionCustomerBrokerSalePluginRoot extends Ab
                     bankMoneyRestockManager,
                     cashMoneyRestockManager,
                     cryptoMoneyRestockManager,
-                    notificationManagerMiddleware,
-                    customerBrokerSaleManager,
                     broadcaster);
-            userLevelBusinessTransactionCustomerBrokerSaleMonitorAgent.start();
-        }else userLevelBusinessTransactionCustomerBrokerSaleMonitorAgent.start();
+
+            agent.start();
+
+        }else agent.start();
     }
 
     public EventManager getEventManager() {

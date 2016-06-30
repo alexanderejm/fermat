@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cardview_light_background">
+
+
+    <FrameLayout
+        android:id="@+id/afi_user_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+
+
+        android:gravity="center">
+
+        <View
+            android:id="@+id/line"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:background="@drawable/line_coloured" />
+
+        <ImageView
+            android:id="@+id/afi_fan_image"
+            android:layout_width="190dp"
+            android:layout_height="190dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="73dp"
+            android:background="@drawable/button_add_picture"
+            tools:ignore="ContentDescription"
+
+            />
+
+        <View
+            android:id="@+id/circle_space"
+            android:layout_width="190dp"
+            android:layout_height="190dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="73dp"
+            android:background="@drawable/picture_space" />
+
+        <View
+            android:id="@+id/warning_cirlcle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/warnning_circle"
+            android:visibility="gone" />
+
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/warning_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/afi_user_image"
+        android:layout_centerHorizontal="true"
+        android:text="missing picture"
+        android:textColor="#DF0101"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <EditText
+        android:id="@+id/afi_alias"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/afi_user_image"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/transparent"
+        android:hint="Your Name"
+        android:paddingTop="23dp"
+        android:textColorHint="@color/cardview_dark_background"
+        android:textColor="@color/cardview_dark_background"
+        android:textSize="25dp"></EditText>
+
+    <View
+        android:id="@+id/edit_buttom"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_alignBottom="@+id/afi_alias"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginLeft="10dp"
+        android:layout_toEndOf="@+id/afi_alias"
+        android:background="@drawable/button_edit"
+        android:paddingRight="10dp"
+        android:paddingTop="29dp" />
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_below="@+id/edit_buttom"
+        android:layout_marginTop="20dp">
+
+        <Spinner
+            android:id="@+id/afi_external_platform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#A8DE7B"
+            android:popupBackground="#A8DE7B"
+            android:spinnerMode="dropdown"
+            android:textColor="#919090"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginRight="100dp"
+            />
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/afi_external_platform_user_id"
+
+            android:textColor="#919090"
+            android:background="#37C7EE"
+            android:popupBackground="#37C7EE"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="100dp" />
+
+
+    </FrameLayout>
+
+    <com.bitdubai.fermat_android_api.layer.definition.wallet.views.FermatTextView
+        android:id="@+id/afi_alias_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:background="@android:color/transparent"
+        android:text="Alias"
+        android:textColor="#919090"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:ignore="HardcodedText" />
+
+
+    <Button
+        android:id="@+id/afi_create_art_fan_identity"
+
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="66dp"
+        android:background="@drawable/button_save_inactive"
+        android:minHeight="0dp"
+        android:minWidth="0dp" />
+
+</RelativeLayout>

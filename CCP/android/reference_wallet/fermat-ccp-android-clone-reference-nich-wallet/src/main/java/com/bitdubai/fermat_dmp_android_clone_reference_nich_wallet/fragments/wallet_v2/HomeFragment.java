@@ -27,7 +27,7 @@ import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.interfaces.
 import com.bitdubai.fermat_ccp_api.layer.basic_wallet.common.enums.BalanceType;
 import com.bitdubai.fermat_dmp_android_clone_reference_nich_wallet.R;
 import com.bitdubai.fermat_dmp_android_clone_reference_nich_wallet.session.ReferenceWalletSession;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedUIExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedUIExceptionSeverity;
 
 
 import java.util.List;
@@ -157,9 +157,9 @@ public class HomeFragment extends AbstractFermatFragment {
         try{
             rootView = inflater.inflate(R.layout.wallets_teens_fragment_send_and_receive, container, false);
 
-            lstPaymentRequestReceived =  cryptoWallet.listReceivedPaymentRequest(walletPublicKey,10,0);
+            lstPaymentRequestReceived =  cryptoWallet.listReceivedPaymentRequest(walletPublicKey,blockchainNetworkType,10,0);
 
-            lstPaymentRequestSended = cryptoWallet.listSentPaymentRequest(walletPublicKey,10,0);
+            lstPaymentRequestSended = cryptoWallet.listSentPaymentRequest(walletPublicKey,blockchainNetworkType,10,0);
 
 
         } catch (Exception e) {

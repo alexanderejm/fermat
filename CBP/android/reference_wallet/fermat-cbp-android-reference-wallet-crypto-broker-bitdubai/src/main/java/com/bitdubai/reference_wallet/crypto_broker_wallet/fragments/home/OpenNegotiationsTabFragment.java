@@ -19,10 +19,9 @@ import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.A
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Wallets;
 import com.bitdubai.fermat_api.layer.pip_engine.interfaces.ResourceProviderManager;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.interfaces.CustomerBrokerNegotiationInformation;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletManager;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletModuleManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.reference_wallet.crypto_broker_wallet.R;
 import com.bitdubai.reference_wallet.crypto_broker_wallet.common.adapters.OpenNegotiationsExpandableAdapter;
 import com.bitdubai.reference_wallet.crypto_broker_wallet.common.models.GrouperItem;
@@ -33,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.bitdubai.fermat_cbp_api.all_definition.constants.CBPBroadcasterConstants.CBW_NEGOTIATION_UPDATE_VIEW;
-import static com.bitdubai.fermat_cbp_api.all_definition.constants.CBPBroadcasterConstants.CBW_NEW_CONTRACT_UPDATE_VIEW;
+import static com.bitdubai.fermat_cbp_api.all_definition.constants.CBPBroadcasterConstants.CBW_CONTRACT_UPDATE_VIEW;
 
 
 /**
@@ -52,7 +51,6 @@ public class OpenNegotiationsTabFragment extends FermatWalletExpandableListFragm
 
     // Data
     private List<GrouperItem> openNegotiationList;
-    private CryptoBrokerWalletManager walletManager;
 
     private  View emptyListViewsContainer;
 
@@ -66,8 +64,7 @@ public class OpenNegotiationsTabFragment extends FermatWalletExpandableListFragm
         super.onCreate(savedInstanceState);
 
         try {
-            moduleManager = ((CryptoBrokerWalletSession) appSession).getModuleManager();
-            walletManager = moduleManager.getCryptoBrokerWallet(appSession.getAppPublicKey());
+            moduleManager = appSession.getModuleManager();
             errorManager = appSession.getErrorManager();
         } catch (Exception ex) {
             CommonLogger.exception(TAG, ex.getMessage(), ex);
@@ -161,8 +158,8 @@ public class OpenNegotiationsTabFragment extends FermatWalletExpandableListFragm
 
             try {
 
-                waitingForBroker.addAll(walletManager.getNegotiationsWaitingForBroker(0, 10));
-                waitingForCustomer.addAll(walletManager.getNegotiationsWaitingForCustomer(0, 10));
+                waitingForBroker.addAll(moduleManager.getNegotiationsWaitingForBroker(0, 10));
+                waitingForCustomer.addAll(moduleManager.getNegotiationsWaitingForCustomer(0, 10));
 
                 if (!waitingForBroker.isEmpty() || !waitingForCustomer.isEmpty()) {
                     grouperText = getActivity().getString(R.string.waiting_for_you);
@@ -198,6 +195,13 @@ public class OpenNegotiationsTabFragment extends FermatWalletExpandableListFragm
     public void onItemClickListener(CustomerBrokerNegotiationInformation data, int position) {
         appSession.setData(CryptoBrokerWalletSession.NEGOTIATION_DATA, data);
         changeActivity(Activities.CBP_CRYPTO_BROKER_WALLET_OPEN_NEGOTIATION_DETAILS, appSession.getAppPublicKey());
+        /*
+        if(data.getStatus() == NegotiationStatus.SENT_TO_BROKER || data.getStatus() == NegotiationStatus.WAITING_FOR_BROKER){
+            changeActivity(Activities.CBP_CRYPTO_BROKER_WALLET_OPEN_NEGOTIATION_DETAILS, appSession.getAppPublicKey());
+        }else{
+            changeActivity(Activities.CBP_CRYPTO_BROKER_WALLET_CLOSE_NEGOTIATION_DETAILS_CLOSE_CONTRACT, appSession.getAppPublicKey());
+        }
+        */
     }
 
     @Override
@@ -239,7 +243,7 @@ public class OpenNegotiationsTabFragment extends FermatWalletExpandableListFragm
             case CBW_NEGOTIATION_UPDATE_VIEW:
                 onRefresh();
                 break;
-            case CBW_NEW_CONTRACT_UPDATE_VIEW:
+            case CBW_CONTRACT_UPDATE_VIEW:
                 onRefresh();
                 break;
         }

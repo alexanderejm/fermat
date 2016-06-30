@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -21,7 +20,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bitbudai.fermat_cht_android_sub_app_chat_bitdubai.adapters.ContactListAdapter;
 import com.bitbudai.fermat_cht_android_sub_app_chat_bitdubai.adapters.ProfileListAdapter;
 import com.bitbudai.fermat_cht_android_sub_app_chat_bitdubai.sessions.ChatSession;
 import com.bitbudai.fermat_cht_android_sub_app_chat_bitdubai.settings.ChatSettings;
@@ -31,21 +29,16 @@ import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.A
 import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
 import com.bitdubai.fermat_api.layer.dmp_engine.sub_app_runtime.enums.SubApps;
 import com.bitdubai.fermat_cht_android_sub_app_chat_bitdubai.R;
-import com.bitdubai.fermat_cht_api.all_definition.exceptions.CantCreateSelfIdentityException;
-import com.bitdubai.fermat_cht_api.all_definition.exceptions.CantGetChatUserIdentityException;
-import com.bitdubai.fermat_cht_api.all_definition.exceptions.CantGetContactException;
 import com.bitdubai.fermat_cht_api.layer.middleware.interfaces.ChatUserIdentity;
-import com.bitdubai.fermat_cht_api.layer.middleware.interfaces.Contact;
 import com.bitdubai.fermat_cht_api.layer.sup_app_module.interfaces.ChatManager;
 import com.bitdubai.fermat_cht_api.layer.sup_app_module.interfaces.ChatModuleManager;
 import com.bitdubai.fermat_cht_api.layer.sup_app_module.interfaces.ChatPreferenceSettings;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedSubAppExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedSubAppExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Profile List fragment
@@ -113,15 +106,16 @@ public class ProfileListFragment extends AbstractFermatFragment implements Profi
 
         try{
             chatSession=((ChatSession) appSession);
-            moduleManager= chatSession.getModuleManager();
-            chatManager=moduleManager.getChatManager();
+            chatManager= chatSession.getModuleManager();
+            //chatManager=moduleManager.getChatManager();
             errorManager=appSession.getErrorManager();
-            try {
-                chatManager.createSelfIdentities();
-            }catch(CantCreateSelfIdentityException e)
-            {
-                errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
-            }
+            //TODO:Cardozo revisar esta logica ya no aplica, esto viene de un metodo nuevo que lo buscara del module del actor connections//chatManager.getChatUserIdentities();
+//            try {
+//                chatManager.createSelfIdentities();
+//            }catch(CantCreateSelfIdentityException e)
+//            {
+//                errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
+//            }
             //Obtain chatSettings or create new chat settings if first time opening chat platform
             chatSettings = null;
             try {
@@ -229,7 +223,8 @@ public class ProfileListFragment extends AbstractFermatFragment implements Profi
         mSwipeRefreshLayout = (SwipeRefreshLayout) layout.findViewById(R.id.swipe_container);
 
         try {
-            List <ChatUserIdentity> con=  chatManager.getChatUserIdentities();
+            //TODO:Cardozo revisar esta logica ya no aplica, esto viene de un metodo nuevo que lo buscara del module del actor connections//chatManager.getChatUserIdentities();
+            List <ChatUserIdentity> con=  null;//chatManager.getChatUserIdentities();
             int size = con.size();
             if (size > 0) {
                 for (int i=0;i<size;i++){
@@ -281,7 +276,8 @@ public class ProfileListFragment extends AbstractFermatFragment implements Profi
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 try {
-                    final ChatUserIdentity profileSelected = chatManager.getChatUserIdentity(profileid.get(position));
+                    //TODO:Cardozo revisar esta logica ya no aplica, esto viene de un metodo nuevo que lo buscara del module del actor connections//chatManager.getChatUserIdentities();
+                    final ChatUserIdentity profileSelected = null;//chatManager.getChatUserIdentity(profileid.get(position));
                     AlertDialog.Builder builder1 = new AlertDialog.Builder(getActivity());
                     builder1.setMessage("Do you want to select "+profileSelected.getAlias()+" as your active profile?");
                     builder1.setCancelable(true);
@@ -316,8 +312,8 @@ public class ProfileListFragment extends AbstractFermatFragment implements Profi
                             });
                     AlertDialog alert11 = builder1.create();
                     alert11.show();
-                } catch (CantGetChatUserIdentityException e) {
-                    errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
+                //} catch (CantGetChatUserIdentityException e) {
+                //    errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
                 } catch (Exception e) {
                     errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
                 }
@@ -329,10 +325,11 @@ public class ProfileListFragment extends AbstractFermatFragment implements Profi
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 try{
-                    appSession.setData(ChatSession.PROFILE_DATA, chatManager.getChatUserIdentity(profileid.get(position)));
+                    //TODO:Cardozo revisar esta logica ya no aplica, esto viene de un metodo nuevo que lo buscara del module del actor connections//chatManager.getChatUserIdentities();
+                    appSession.setData(ChatSession.PROFILE_DATA, null);//chatManager.getChatUserIdentity(profileid.get(position)));
                     changeActivity(Activities.CHT_CHAT_OPEN_PROFILE_DETAIL, appSession.getAppPublicKey());
-                }catch(CantGetChatUserIdentityException e) {
-                    errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
+                //}catch(CantGetChatUserIdentityException e) {
+                //    errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
                 }catch (Exception e){
                     errorManager.reportUnexpectedSubAppException(SubApps.CHT_CHAT, UnexpectedSubAppExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
                 }

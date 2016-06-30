@@ -12,6 +12,7 @@ import android.widget.EditText;
 
 import com.bitdubai.fermat_android_api.layer.definition.wallet.AbstractFermatFragment;
 import com.bitdubai.fermat_api.layer.all_definition.enums.FiatCurrency;
+import com.bitdubai.fermat_api.layer.all_definition.enums.WalletsPublicKeys;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Activities;
 import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.Wallets;
 import com.bitdubai.fermat_bnk_api.all_definition.bank_money_transaction.BankTransactionParameters;
@@ -20,8 +21,8 @@ import com.bitdubai.fermat_bnk_api.all_definition.enums.TransactionType;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.interfaces.BankAccountNumber;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.interfaces.BankMoneyTransactionRecord;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet_module.interfaces.BankMoneyWalletModuleManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.reference_wallet.bank_money_wallet.R;
 import com.bitdubai.reference_wallet.bank_money_wallet.session.BankMoneyWalletSession;
 import com.bitdubai.reference_wallet.bank_money_wallet.util.CommonLogger;
@@ -109,12 +110,17 @@ public class UpdateTransactionRecordFragment extends AbstractFermatFragment {
         if (item.getItemId() == ReferenceWalletConstants.UPDATE_RECORD_ACTION) {
             System.out.println("item selected UPDATE ACTION");
             //TODO:update transaction
-            makeTransaction();
+            makeTransaction(false);
             changeActivity(Activities.BNK_BANK_MONEY_WALLET_ACCOUNT_DETAILS, appSession.getAppPublicKey());
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        makeTransaction(true);
     }
 
     @Override
@@ -124,9 +130,12 @@ public class UpdateTransactionRecordFragment extends AbstractFermatFragment {
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
     }
 
-    private void makeTransaction() {
+    private void makeTransaction(boolean transactionUpdateCancelled) {
         if (transactionRecord.getStatus() == BankTransactionStatus.PENDING) {
-            if (transactionRecord.getTransactionType() == TransactionType.DEBIT) {
+
+            //Make transaction without changes
+            if(transactionUpdateCancelled)
+            {
                 moduleManager.getBankingWallet().makeAsyncWithdraw(new BankTransactionParameters() {
                     @Override
                     public UUID getTransactionId() {
@@ -140,7 +149,52 @@ public class UpdateTransactionRecordFragment extends AbstractFermatFragment {
 
                     @Override
                     public String getPublicKeyWallet() {
-                        return "banking_wallet";
+                        return WalletsPublicKeys.BNK_BANKING_WALLET.getCode();//"banking_wallet";
+                    }
+
+                    @Override
+                    public String getPublicKeyActor() {
+                        return "pkeyActorRefWallet";
+                    }
+
+                    @Override
+                    public BigDecimal getAmount() {
+                        BigDecimal bAmount = new BigDecimal(transactionRecord.getAmount());
+                        return bAmount;
+                    }
+
+                    @Override
+                    public String getAccount() {
+                        return bankAccountNumber.getAccount();
+                    }
+
+                    @Override
+                    public FiatCurrency getCurrency() {
+                        return bankAccountNumber.getCurrencyType();
+                    }
+
+                    @Override
+                    public String getMemo() {
+                        return transactionRecord.getMemo();
+
+                    }
+                });
+
+            } else if (transactionRecord.getTransactionType() == TransactionType.DEBIT) {
+                moduleManager.getBankingWallet().makeAsyncWithdraw(new BankTransactionParameters() {
+                    @Override
+                    public UUID getTransactionId() {
+                        return UUID.randomUUID();
+                    }
+
+                    @Override
+                    public String getPublicKeyPlugin() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getPublicKeyWallet() {
+                        return WalletsPublicKeys.BNK_BANKING_WALLET.getCode();//"banking_wallet";
                     }
 
                     @Override
@@ -170,8 +224,8 @@ public class UpdateTransactionRecordFragment extends AbstractFermatFragment {
 
                     }
                 });
-            }
-            if (transactionRecord.getTransactionType() == TransactionType.CREDIT) {
+
+            } else if (transactionRecord.getTransactionType() == TransactionType.CREDIT) {
                 moduleManager.getBankingWallet().makeAsyncDeposit(new BankTransactionParameters() {
                     @Override
                     public UUID getTransactionId() {
@@ -185,7 +239,7 @@ public class UpdateTransactionRecordFragment extends AbstractFermatFragment {
 
                     @Override
                     public String getPublicKeyWallet() {
-                        return "banking_wallet";
+                        return WalletsPublicKeys.BNK_BANKING_WALLET.getCode();//"banking_wallet";
                     }
 
                     @Override

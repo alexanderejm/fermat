@@ -1,10 +1,15 @@
 package com.bitdubai.fermat_tky_api.layer.sub_app_module.artist.interfaces;
 
-import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.FermatManager;
+import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
+import com.bitdubai.fermat_api.layer.modules.common_classes.ActiveActorIdentityInformation;
+import com.bitdubai.fermat_api.layer.modules.interfaces.ModuleManager;
 import com.bitdubai.fermat_tky_api.all_definitions.enums.ArtistAcceptConnectionsType;
 import com.bitdubai.fermat_tky_api.all_definitions.enums.ExposureLevel;
 import com.bitdubai.fermat_tky_api.all_definitions.enums.ExternalPlatform;
+import com.bitdubai.fermat_tky_api.all_definitions.enums.TokenlyAPIStatus;
 import com.bitdubai.fermat_tky_api.all_definitions.exceptions.IdentityNotFoundException;
+import com.bitdubai.fermat_tky_api.all_definitions.exceptions.TokenlyAPINotAvailableException;
+import com.bitdubai.fermat_tky_api.all_definitions.exceptions.WrongTokenlyUserCredentialsException;
 import com.bitdubai.fermat_tky_api.layer.identity.artist.exceptions.ArtistIdentityAlreadyExistsException;
 import com.bitdubai.fermat_tky_api.layer.identity.artist.exceptions.CantCreateArtistIdentityException;
 import com.bitdubai.fermat_tky_api.layer.identity.artist.exceptions.CantGetArtistIdentityException;
@@ -12,13 +17,18 @@ import com.bitdubai.fermat_tky_api.layer.identity.artist.exceptions.CantListArti
 import com.bitdubai.fermat_tky_api.layer.identity.artist.exceptions.CantUpdateArtistIdentityException;
 import com.bitdubai.fermat_tky_api.layer.identity.artist.interfaces.Artist;
 
+
+
 import java.util.List;
 import java.util.UUID;
 
 /**
  * Created by Alexander Jimenez (alex_jimenez76@hotmail.com) on 3/17/16.
  */
-public interface TokenlyArtistIdentityManagerModule extends FermatManager {
+public interface TokenlyArtistIdentityManagerModule extends
+        ModuleManager<
+                TokenlyArtistPreferenceSettings,
+                ActiveActorIdentityInformation> {
     /**
      * Through the method <code>listIdentitiesFromCurrentDeviceUser</code> we can get all the artist
      * identities linked to the current logged device user.
@@ -27,13 +37,11 @@ public interface TokenlyArtistIdentityManagerModule extends FermatManager {
      */
     List<Artist> listIdentitiesFromCurrentDeviceUser() throws CantListArtistIdentitiesException;
 
-
     /**
      *
-     * @param alias
+     * @param userName
      * @param profileImage
-     * @param externalUserName
-     * @param externalAccessToken
+     * @param password
      * @param externalPlatform
      * @param exposureLevel
      * @param artistAcceptConnectionsType
@@ -42,30 +50,37 @@ public interface TokenlyArtistIdentityManagerModule extends FermatManager {
      * @throws ArtistIdentityAlreadyExistsException
      */
     Artist createArtistIdentity(
-            String alias, byte[] profileImage,
-            String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform,
-            ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) throws
+            String userName,
+            byte[] profileImage,
+            String password,
+            ExternalPlatform externalPlatform,
+            ExposureLevel exposureLevel,
+            ArtistAcceptConnectionsType artistAcceptConnectionsType) throws
             CantCreateArtistIdentityException,
-            ArtistIdentityAlreadyExistsException;
+            ArtistIdentityAlreadyExistsException, WrongTokenlyUserCredentialsException;
 
     /**
      *
-     * @param alias
+     * @param username
+     * @param password
      * @param id
      * @param publicKey
      * @param profileImage
-     * @param externalUserName
-     * @param externalAccessToken
      * @param externalPlatform
      * @param exposureLevel
      * @param artistAcceptConnectionsType
      * @throws CantUpdateArtistIdentityException
      */
-    void updateArtistIdentity(
-            String alias, UUID id,String publicKey, byte[] profileImage,
-            String externalUserName, String externalAccessToken, ExternalPlatform externalPlatform,
-            ExposureLevel exposureLevel, ArtistAcceptConnectionsType artistAcceptConnectionsType) throws
-            CantUpdateArtistIdentityException;
+    Artist updateArtistIdentity(
+            String username,
+            String password,
+            UUID id,
+            String publicKey,
+            byte[] profileImage,
+            ExternalPlatform externalPlatform,
+            ExposureLevel exposureLevel,
+            ArtistAcceptConnectionsType artistAcceptConnectionsType) throws
+            CantUpdateArtistIdentityException, WrongTokenlyUserCredentialsException;
 
     /**
      * This method returns a Artist identity
@@ -77,4 +92,21 @@ public interface TokenlyArtistIdentityManagerModule extends FermatManager {
     Artist getArtistIdentity(UUID publicKey) throws
             CantGetArtistIdentityException,
             IdentityNotFoundException;
+
+    /**
+     * This method checks if the Tokenly Music API is available.
+     * @return
+     * @throws TokenlyAPINotAvailableException
+     */
+    TokenlyAPIStatus getMusicAPIStatus() throws TokenlyAPINotAvailableException;
+
+    /**
+     * Through the method <code>getSettingsManager</code> we can get a settings manager for the specified
+     * settings class parametrized.
+     *
+     * @return a new instance of the settings manager for the specified fermat settings object.
+     */
+    @Override
+    SettingsManager<TokenlyArtistPreferenceSettings> getSettingsManager();
+
 }

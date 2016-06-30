@@ -43,21 +43,18 @@ import com.bitdubai.fermat_api.layer.all_definition.navigation_structure.enums.W
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.CantGetSettingsException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.exceptions.SettingsNotFoundException;
 import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsManager;
-import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.exceptions.CantGetAllWalletContactsException;
-import com.bitdubai.fermat_ccp_api.layer.wallet_module.crypto_wallet.exceptions.CantGetCryptoWalletException;
-
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.LossProtectedWalletSettings;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.exceptions.CantGetCryptoLossProtectedWalletException;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.interfaces.LossProtectedWallet;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.interfaces.LossProtectedWalletContact;
 import com.bitdubai.fermat_ccp_api.layer.wallet_module.loss_protected_wallet.interfaces.LossProtectedWalletManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedUIExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedWalletExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedUIExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedWalletExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_wpd_api.layer.wpd_network_service.wallet_resources.interfaces.WalletResourcesProviderManager;
-import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.BitcoinWalletConstants;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.CreateContactDialogCallback;
+import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.LossProtectedWalletConstants;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.Views.FermatListViewFragment;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.Views.SubActionButton;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.Views.views_contacts_fragment.IndexBarView;
@@ -68,9 +65,9 @@ import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.enums.He
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.popup.ConnectionWithCommunityDialog;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.popup.ContactsTutorialPart1V2;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.popup.CreateContactFragmentDialog;
+import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.utils.WalletUtils;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.session.LossProtectedWalletSession;
 import com.bitdubai.reference_niche_wallet.loss_protected_wallet.session.SessionConstant;
-import com.bitdubai.reference_niche_wallet.loss_protected_wallet.common.utils.WalletUtils;
 import com.oguzdev.circularfloatingactionmenu.library.FloatingActionMenu;
 
 import java.util.ArrayList;
@@ -165,7 +162,7 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
             cryptoWallet = cryptoWalletManager.getCryptoWallet();
         } catch (CantGetCryptoLossProtectedWalletException e) {
             errorManager.reportUnexpectedWalletException(Wallets.CWP_WALLET_RUNTIME_WALLET_BITCOIN_WALLET_ALL_BITDUBAI, UnexpectedWalletExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_FRAGMENT, e);
-            WalletUtils.showMessage(getActivity(), "Unexpected error get Contact list - " + e.getMessage());
+            WalletUtils.showMessage(getActivity(), "Unexpected error getting Contact list - " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -175,7 +172,7 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         try {
             mSavedInstanceState = savedInstanceState;
-            rootView = inflater.inflate(R.layout.main_act, container, false);
+            rootView = inflater.inflate(R.layout.contact_detail_main, container, false);
             setupViews(rootView);
             setUpFAB();
             walletContactRecords = new ArrayList<>();
@@ -189,7 +186,10 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
                     if (walletContactRecords.isEmpty()) {
                         rootView.findViewById(R.id.fragment_container2).setVisibility(View.GONE);
                         try {
-                            setUpTutorial();
+                            boolean isHelpEnabled = settingsManager.loadAndGetSettings(appSession.getAppPublicKey()).isContactsHelpEnabled();
+
+                            if (isHelpEnabled)
+                                setUpTutorial(true);
                         } catch (CantGetSettingsException e) {
                             e.printStackTrace();
                         } catch (SettingsNotFoundException e) {
@@ -290,7 +290,7 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
 
         super.onCreateOptionsMenu(menu, inflater);
 
-        menu.add(0, BitcoinWalletConstants.IC_ACTION_HELP_CONTACT, 0, "help").setIcon(R.drawable.help_icon)
+        menu.add(0, LossProtectedWalletConstants.IC_ACTION_HELP_CONTACT, 0, "help").setIcon(R.drawable.loos_help_icon)
                 .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         //inflater.inflate(R.menu.home_menu, menu);
     }
@@ -301,8 +301,8 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
 
             int id = item.getItemId();
 
-            if (id == BitcoinWalletConstants.IC_ACTION_HELP_CONTACT) {
-                setUpTutorial();
+            if (id == LossProtectedWalletConstants.IC_ACTION_HELP_CONTACT) {
+                setUpTutorial(true);
                 return true;
             }
 
@@ -335,10 +335,9 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
         refreshAdapter();
     }
 
-    private void setUpTutorial() throws CantGetSettingsException, SettingsNotFoundException {
-        boolean isHelpEnabled = settingsManager.loadAndGetSettings(appSession.getAppPublicKey()).isContactsHelpEnabled();
-        if (isHelpEnabled) {
-            ContactsTutorialPart1V2 contactsTutorialPart1 = new ContactsTutorialPart1V2(getActivity(), referenceWalletSession, null, settingsManager.loadAndGetSettings(referenceWalletSession.getAppPublicKey()).isContactsHelpEnabled());
+    private void setUpTutorial(boolean checkButton) throws CantGetSettingsException, SettingsNotFoundException {
+        //if (isHelpEnabled) {
+            ContactsTutorialPart1V2 contactsTutorialPart1 = new ContactsTutorialPart1V2(getActivity(), referenceWalletSession, null, checkButton);
             contactsTutorialPart1.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
@@ -353,7 +352,7 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
                 }
             });
             contactsTutorialPart1.show();
-        }
+       // }
     }
 
     private void refreshAdapter() {
@@ -451,7 +450,7 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
         mListView.setPinnedHeaderView(pinnedHeaderView);
 
         // set index bar view
-        IndexBarView indexBarView = (IndexBarView) inflater.inflate(R.layout.index_bar_view, mListView, false);
+        IndexBarView indexBarView = (IndexBarView) inflater.inflate(R.layout.index_bar_view_loss, mListView, false);
         indexBarView.setData(mListView, mListItems, mListSectionPos);
         mListView.setIndexBarView(indexBarView);
 /*
@@ -482,19 +481,19 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
                     if (isFromActionBarSend != null) {
                         if (isFromActionBarSend) {
                             referenceWalletSession.setData(SessionConstant.FROM_ACTIONBAR_SEND_ICON_CONTACTS, Boolean.FALSE);
-                            changeActivity(Activities.CCP_BITCOIN_WALLET_SEND_FORM_ACTIVITY, referenceWalletSession.getAppPublicKey());
+                            changeActivity(Activities.CCP_BITCOIN_LOSS_PROTECTED_WALLET_SEND_FORM_ACTIVITY, referenceWalletSession.getAppPublicKey());
 
                         } else {
-                            changeActivity(Activities.CCP_BITCOIN_WALLET_CONTACT_DETAIL_ACTIVITY, referenceWalletSession.getAppPublicKey());
+                            changeActivity(Activities.CCP_BITCOIN_LOSS_PROTECTED_WALLET_CONTACT_DETAIL_ACTIVITY, referenceWalletSession.getAppPublicKey());
                         }
                     } else {
-                        changeActivity(Activities.CCP_BITCOIN_WALLET_CONTACT_DETAIL_ACTIVITY, referenceWalletSession.getAppPublicKey());
+                        changeActivity(Activities.CCP_BITCOIN_LOSS_PROTECTED_WALLET_CONTACT_DETAIL_ACTIVITY, referenceWalletSession.getAppPublicKey());
                     }
 
 
                 } catch (Exception ex) {
                     errorManager.reportUnexpectedUIException(UISource.VIEW, UnexpectedUIExceptionSeverity.UNSTABLE, ex);
-                    WalletUtils.showMessage(getActivity(), "Unexpected error get Contact Detalil - " + ex.getMessage());
+                    WalletUtils.showMessage(getActivity(), "Unexpected error getting Contact Detalil - " + ex.getMessage());
                 }
             }
         });
@@ -545,7 +544,7 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
             walletContact.setName("");
             lauchCreateContactDialog(false);
         } else if (id == ID_BTN_INTRA_USER) {
-            changeActivity(Activities.CCP_BITCOIN_WALLET_ADD_CONNECTION_ACTIVITY, referenceWalletSession.getAppPublicKey());
+            changeActivity(Activities.CCP_BITCOIN_LOSS_PROTECTED_WALLET_ADD_CONNECTION_ACTIVITY, referenceWalletSession.getAppPublicKey());
         }
     }
 
@@ -557,10 +556,10 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-//TODO obtener la [a posicion del scroll antes de hacer populate
+//TODO: get scroll position before populating
         //if (isScrolled) {
         //new Populate().execute((ArrayList<CryptoWalletWalletContact>) mItems);
-        //TODO setear la posicion obtenida despues de hacer el populate
+        //TODO: set obtained position after populating
         //   mListView.scrollTo(0, mListSectionPos.size() - firstVisibleItem);
 //        }
     }
@@ -796,7 +795,7 @@ public class ContactsFragment extends AbstractFermatFragment implements FermatLi
                     }
 
                 }
-            //TODO METODO CON RETURN NULL - OJO: solo INFORMATIVO de ayuda VISUAL para DEBUG - Eliminar si molesta
+            //TODO Return null method - OJO: only informative for visual aid during debug - remove if it bothers
             return null;
         }
 

@@ -3,6 +3,7 @@ package com.bitdubai.fermat_tky_api.layer.song_wallet.interfaces;
 import com.bitdubai.fermat_tky_api.all_definitions.enums.SongStatus;
 import com.bitdubai.fermat_tky_api.layer.external_api.interfaces.music.Song;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -10,7 +11,7 @@ import java.util.UUID;
  * This contains the SongStatus registered in Song Wallet database.
  * Created by Manuel Perez (darkpriestrelative@gmail.com) on 15/03/16.
  */
-public interface WalletSong extends Song {
+public interface WalletSong extends Song, Serializable {
 
     /**
      * This method returns the WalletSong SongStatus
@@ -31,5 +32,11 @@ public interface WalletSong extends Song {
      * @return
      */
     String getTokensXML();
+
+    /**
+     * This method returns a byte array that represents the song ready to be played.
+     * @return
+     */
+    byte[] getSongBytes();
 
 }

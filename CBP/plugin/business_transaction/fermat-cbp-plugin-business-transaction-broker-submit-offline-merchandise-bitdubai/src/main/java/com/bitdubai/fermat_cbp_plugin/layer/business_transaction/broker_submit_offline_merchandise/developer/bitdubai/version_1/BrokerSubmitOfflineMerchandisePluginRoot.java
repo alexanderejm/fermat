@@ -19,8 +19,8 @@ import com.bitdubai.fermat_api.layer.all_definition.enums.Layers;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Platforms;
 import com.bitdubai.fermat_api.layer.all_definition.enums.Plugins;
 import com.bitdubai.fermat_api.layer.all_definition.enums.ServiceStatus;
-
 import com.bitdubai.fermat_api.layer.all_definition.util.Version;
+import com.bitdubai.fermat_api.layer.core.PluginInfo;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.Database;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.PluginDatabaseSystem;
 import com.bitdubai.fermat_api.layer.osa_android.database_system.exceptions.CantCreateDatabaseException;
@@ -30,8 +30,6 @@ import com.bitdubai.fermat_api.layer.osa_android.logger_system.LogLevel;
 import com.bitdubai.fermat_api.layer.osa_android.logger_system.LogManager;
 import com.bitdubai.fermat_cbp_api.all_definition.exceptions.CantInitializeDatabaseException;
 import com.bitdubai.fermat_cbp_api.all_definition.exceptions.CantStartServiceException;
-import com.bitdubai.fermat_cbp_api.layer.business_transaction.common.mocks.CustomerBrokerContractSaleManagerMock;
-import com.bitdubai.fermat_cbp_api.layer.business_transaction.common.mocks.SaleNegotiationManagerMock;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_purchase.interfaces.CustomerBrokerContractPurchaseManager;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_sale.interfaces.CustomerBrokerContractSaleManager;
 import com.bitdubai.fermat_cbp_api.layer.negotiation.customer_broker_sale.interfaces.CustomerBrokerSaleNegotiationManager;
@@ -47,11 +45,10 @@ import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.broker_submit_o
 import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.broker_submit_offline_merchandise.developer.bitdubai.version_1.exceptions.CantInitializeBrokerSubmitOfflineMerchandiseBusinessTransactionDatabaseException;
 import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.broker_submit_offline_merchandise.developer.bitdubai.version_1.structure.BrokerSubmitOfflineMerchandiseMonitorAgent;
 import com.bitdubai.fermat_cbp_plugin.layer.business_transaction.broker_submit_offline_merchandise.developer.bitdubai.version_1.structure.BrokerSubmitOfflineMerchandiseTransactionManager;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +58,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Manuel Perez on 21/12/2015
  */
-
+@PluginInfo(createdBy = "darkestpriest", maintainerMail = "darkpriestrelative@gmail.com", platform = Platforms.CRYPTO_BROKER_PLATFORM, layer = Layers.BUSINESS_TRANSACTION, plugin = Plugins.BROKER_SUBMIT_OFFLINE_MERCHANDISE)
 public class BrokerSubmitOfflineMerchandisePluginRoot extends AbstractPlugin implements
         DatabaseManagerForDevelopers,
         LogManagerForDevelopers {
@@ -272,9 +269,10 @@ public class BrokerSubmitOfflineMerchandisePluginRoot extends AbstractPlugin imp
                     transactionTransmissionManager,
                     customerBrokerContractPurchaseManager,
                     customerBrokerContractSaleManager,
+                    customerBrokerSaleNegotiationManager,
                     cashMoneyDestockManager,
-                    bankMoneyDestockManager
-                    );
+                    bankMoneyDestockManager,
+                    cryptoBrokerWalletManager);
             brokerSubmitOfflineMerchandiseMonitorAgent.start();
 
             this.serviceStatus = ServiceStatus.STARTED;
@@ -391,19 +389,4 @@ public class BrokerSubmitOfflineMerchandisePluginRoot extends AbstractPlugin imp
     public List<DeveloperDatabaseTableRecord> getDatabaseTableContent(DeveloperObjectFactory developerObjectFactory, DeveloperDatabase developerDatabase, DeveloperDatabaseTable developerDatabaseTable) {
         return brokerSubmitOfflineMerchandiseBusinessTransactionDeveloperDatabaseFactory.getDatabaseTableContent(developerObjectFactory, developerDatabaseTable);
     }
-
-    public void testSubmit(){
-        try{
-            BigDecimal testReferencePrice=BigDecimal.valueOf(838,89);
-            this.brokerSubmitOfflineMerchandiseTransactionManager.submitMerchandise(
-                    testReferencePrice,
-                    "testCBPWalletPublicKey",
-                    "testOfflineWalletPublicKey",
-                    "888052D7D718420BD197B647F3BB04128C9B71BC99DBB7BC60E78BDAC4DFC6E2");
-        } catch(Exception e){
-            System.out.println("Exception in Broker Submit Offline Merchandise Test:"+e);
-            e.printStackTrace();
-        }
-    }
-
 }

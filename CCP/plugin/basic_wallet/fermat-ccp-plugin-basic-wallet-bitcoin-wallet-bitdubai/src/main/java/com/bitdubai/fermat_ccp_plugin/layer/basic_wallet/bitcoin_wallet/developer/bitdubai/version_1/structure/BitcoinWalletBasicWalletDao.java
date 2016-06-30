@@ -271,7 +271,8 @@ public class BitcoinWalletBasicWalletDao {
 
 
             if ( transactionType == TransactionType.CREDIT){
-                bitcoinWalletTable.clearAllFilters();
+               // bitcoinWalletTable.clearAllFilters();
+
                 bitcoinWalletTable.addFilterOrder(BitcoinWalletDatabaseConstants.BITCOIN_WALLET_TABLE_TIME_STAMP_COLUMN_NAME, DatabaseFilterOrder.DESCENDING);
 
                 bitcoinWalletTable.addStringFilter(BitcoinWalletDatabaseConstants.BITCOIN_WALLET_TABLE_BALANCE_TYPE_COLUMN_NAME, balanceType.getCode(), DatabaseFilterType.EQUAL);
@@ -283,7 +284,7 @@ public class BitcoinWalletBasicWalletDao {
                 return createTransactionList(bitcoinWalletTable.getRecords());
             }
             if ( transactionType == TransactionType.DEBIT){
-                bitcoinWalletTable.clearAllFilters();
+               // bitcoinWalletTable.clearAllFilters();
                 bitcoinWalletTable.addFilterOrder(BitcoinWalletDatabaseConstants.BITCOIN_WALLET_TABLE_TIME_STAMP_COLUMN_NAME, DatabaseFilterOrder.DESCENDING);
 
                 bitcoinWalletTable.addStringFilter(BitcoinWalletDatabaseConstants.BITCOIN_WALLET_TABLE_BALANCE_TYPE_COLUMN_NAME, balanceType.getCode(), DatabaseFilterType.EQUAL);
@@ -384,7 +385,7 @@ public class BitcoinWalletBasicWalletDao {
             /**
              *  I will load the information of table into a memory structure, filter for transaction id
              */
-            bitcoinwalletTable.addStringFilter(BitcoinWalletDatabaseConstants.BITCOIN_WALLET_TABLE_ID_COLUMN_NAME, transactionID.toString(), DatabaseFilterType.EQUAL);
+            bitcoinwalletTable.addStringFilter(BitcoinWalletDatabaseConstants.BBITCOIN_WALLET_TABLE_VERIFICATION_ID_COLUMN_NAME, transactionID.toString(), DatabaseFilterType.EQUAL);
 
             bitcoinwalletTable.loadToMemory();
 

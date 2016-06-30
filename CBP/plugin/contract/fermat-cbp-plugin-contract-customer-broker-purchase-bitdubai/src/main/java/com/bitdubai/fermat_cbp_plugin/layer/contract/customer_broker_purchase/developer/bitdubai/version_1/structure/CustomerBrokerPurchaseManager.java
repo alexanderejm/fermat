@@ -2,7 +2,6 @@ package com.bitdubai.fermat_cbp_plugin.layer.contract.customer_broker_purchase.d
 
 import com.bitdubai.fermat_api.layer.all_definition.common.system.utils.PluginVersionReference;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.ContractStatus;
-import com.bitdubai.fermat_cbp_api.layer.actor.crypto_customer.exceptions.CantUpdateActorExtraDataException;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_purchase.exceptions.CantCreateCustomerBrokerContractPurchaseException;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_purchase.exceptions.CantGetListCustomerBrokerContractPurchaseException;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_purchase.exceptions.CantUpdateCustomerBrokerContractPurchaseException;
@@ -10,8 +9,8 @@ import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_purchase.inter
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_purchase.interfaces.CustomerBrokerContractPurchaseManager;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_purchase.interfaces.ListsForStatusPurchase;
 import com.bitdubai.fermat_cbp_plugin.layer.contract.customer_broker_purchase.developer.bitdubai.version_1.database.CustomerBrokerContractPurchaseDao;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.Collection;
 
@@ -98,6 +97,17 @@ public class CustomerBrokerPurchaseManager implements CustomerBrokerContractPurc
     public void updateContractNearExpirationDatetime(String contractId, Boolean status) throws CantUpdateCustomerBrokerContractPurchaseException {
         try{
             this.customerBrokerContractPurchaseDao.updateContractNearExpirationDatetime(contractId, status);
+        } catch (CantUpdateCustomerBrokerContractPurchaseException e) {
+            this.errorManager.reportUnexpectedPluginException(this.pluginVersionReference, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, e);
+            throw new CantUpdateCustomerBrokerContractPurchaseException(e.getMessage(), e, "", "Cant Update Customer Broker Contract Purchase");
+        }
+    }
+
+    //ADD YORDIN ALAYN 07.04.16
+    @Override
+    public void cancelContract(String contractId, String reason)  throws CantUpdateCustomerBrokerContractPurchaseException {
+        try{
+            this.customerBrokerContractPurchaseDao.cancelContract(contractId, reason);
         } catch (CantUpdateCustomerBrokerContractPurchaseException e) {
             this.errorManager.reportUnexpectedPluginException(this.pluginVersionReference, UnexpectedPluginExceptionSeverity.DISABLES_SOME_FUNCTIONALITY_WITHIN_THIS_PLUGIN, e);
             throw new CantUpdateCustomerBrokerContractPurchaseException(e.getMessage(), e, "", "Cant Update Customer Broker Contract Purchase");

@@ -62,6 +62,7 @@ import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_se
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_services.events_handlers.CompleteRequestListComponentRegisteredNotificationEventHandler;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_services.events_handlers.CompleteUpdateActorNotificationEventHandler;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_services.events_handlers.FailureComponentConnectionRequestNotificationEventHandler;
+import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_services.events_handlers.RegisterServerRequestNotificationEventHandler;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_services.events_handlers.VPNConnectionCloseNotificationEventHandler;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_services.events_handlers.VPNConnectionLooseNotificationEventHandler;
 import com.bitdubai.fermat_p2p_api.layer.all_definition.communication.network_services.exceptions.CantInitializeNetworkServiceDatabaseException;
@@ -73,8 +74,8 @@ import com.bitdubai.fermat_p2p_api.layer.p2p_communication.commons.client.Commun
 import com.bitdubai.fermat_p2p_api.layer.p2p_communication.commons.contents.FermatMessage;
 import com.bitdubai.fermat_p2p_api.layer.p2p_communication.commons.enums.FermatMessageContentType;
 import com.bitdubai.fermat_p2p_api.layer.p2p_communication.commons.enums.FermatMessagesStatus;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 import com.bitdubai.fermat_pip_api.layer.platform_service.event_manager.interfaces.EventManager;
 
 import java.sql.Timestamp;
@@ -265,7 +266,7 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
                         /*
                          * Construct my profile and register me
                          */
-                        this.networkServiceProfile =  wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection().constructPlatformComponentProfileFactory(identity.getPublicKey(),
+                        this.networkServiceProfile =  wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection(networkServiceType).constructPlatformComponentProfileFactory(identity.getPublicKey(),
                                 name.toLowerCase(),
                                 name,
                                 networkServiceType,
@@ -285,6 +286,11 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
 
                         this.communicationSupervisorPendingMessagesAgent = new CommunicationSupervisorPendingMessagesAgent(this);
                         this.communicationSupervisorPendingMessagesAgent.start();
+                    }
+                    else {
+
+                        System.out.println(" -- COMMUNICATION  cloud client is DISABLED");
+
                     }
 
                     /*
@@ -311,10 +317,13 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
                     contextBuffer.append("Plugin ID: " + pluginId);
                     contextBuffer.append(CantStartPluginException.CONTEXT_CONTENT_SEPARATOR);
                     contextBuffer.append("Database Name: " + CommunicationNetworkServiceDatabaseConstants.DATA_BASE_NAME);
+                    contextBuffer.append("NS Name: " + networkServiceType);
 
                     String context = contextBuffer.toString();
-                    String possibleCause = "The Template triggered an unexpected problem that wasn't able to solve by itself";
+                    String possibleCause = "The Template triggered an unexpected problem that wasn't able to solve by itself - ";
+                    possibleCause += exception.getMessage();
                     CantStartPluginException pluginStartException = new CantStartPluginException(CantStartPluginException.DEFAULT_MESSAGE, exception, context, possibleCause);
+                    exception.printStackTrace();
 
                     errorManager.reportUnexpectedPluginException(this.getPluginVersionReference(), UnexpectedPluginExceptionSeverity.DISABLES_THIS_PLUGIN, pluginStartException);
                     throw pluginStartException;
@@ -443,10 +452,18 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
 
 
         /*
-         * 10 Listen and handle VPN Connection Close Notification Event
+         * 10 Listen and handle VPN Connection Loose Notification Event
          */
         fermatEventListener = eventManager.getNewListener(P2pEventType.VPN_CONNECTION_LOOSE);
         fermatEventListener.setEventHandler(new VPNConnectionLooseNotificationEventHandler(this));
+        eventManager.addListener(fermatEventListener);
+        listenersAdded.add(fermatEventListener);
+
+        /*
+         * 11 Listen and handle Register Server Request Notification Event
+         */
+        fermatEventListener = eventManager.getNewListener(P2pEventType.REGISTER_SERVER_REQUEST_NOTIFICATION);
+        fermatEventListener.setEventHandler(new RegisterServerRequestNotificationEventHandler(this));
         eventManager.addListener(fermatEventListener);
         listenersAdded.add(fermatEventListener);
 
@@ -593,13 +610,15 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
 
         try {
 
-            if (event.getPlatformComponentProfileRegistered().getPlatformComponentType() == PlatformComponentType.COMMUNICATION_CLOUD_CLIENT && !this.register){
+            if (wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection(networkServiceType).isRegister() &&
+                    event.getPlatformComponentProfileRegistered().getPlatformComponentType() == PlatformComponentType.COMMUNICATION_CLOUD_CLIENT &&
+                    !this.register){
 
                 if(communicationRegistrationProcessNetworkServiceAgent != null && communicationRegistrationProcessNetworkServiceAgent.getActive()){
                     communicationRegistrationProcessNetworkServiceAgent.stop();
                     communicationRegistrationProcessNetworkServiceAgent = null;
                 }
-                wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection().registerComponentForCommunication(this.getNetworkServiceProfile().getNetworkServiceType(), this.getNetworkServiceProfile());
+                wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection(networkServiceType).registerComponentForCommunication(this.getNetworkServiceProfile().getNetworkServiceType(), this.getNetworkServiceProfile());
             }
 
             if (event.getPlatformComponentProfileRegistered().getPlatformComponentType() == PlatformComponentType.NETWORK_SERVICE &&
@@ -633,16 +652,20 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
 
         try {
 
-            this.register = Boolean.FALSE;
+            if(!wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection(networkServiceType).isRegister()) {
 
-            if(communicationNetworkServiceConnectionManager != null) {
-                communicationNetworkServiceConnectionManager.closeAllConnection();
-                communicationNetworkServiceConnectionManager.stop();
+                this.register = Boolean.FALSE;
+
+                if (communicationNetworkServiceConnectionManager != null) {
+                    communicationNetworkServiceConnectionManager.closeAllConnection();
+                    communicationNetworkServiceConnectionManager.stop();
+                }
+
+                communicationSupervisorPendingMessagesAgent.removeAllConnectionWaitingForResponse();
+
+                onClientConnectionClose();
+
             }
-
-            communicationSupervisorPendingMessagesAgent.removeAllConnectionWaitingForResponse();
-
-            onClientConnectionClose();
 
         }catch (Exception e) {
             e.printStackTrace();
@@ -658,15 +681,19 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
 
         try {
 
-            if (communicationNetworkServiceConnectionManager != null){
-                communicationNetworkServiceConnectionManager.restart();
+            if(wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection(networkServiceType).isRegister()) {
+
+                if (communicationNetworkServiceConnectionManager != null) {
+                    communicationNetworkServiceConnectionManager.restart();
+                }
+
+                this.register = Boolean.TRUE;
+
+                reprocessMessages();
+
+                onClientSuccessfulReconnect();
+
             }
-
-            this.register = Boolean.TRUE;
-
-            reprocessMessages();
-
-            onClientSuccessfulReconnect();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -682,15 +709,19 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
 
         try {
 
-            if(communicationNetworkServiceConnectionManager != null) {
-                communicationNetworkServiceConnectionManager.stop();
+            if(!wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection(networkServiceType).isRegister()) {
+
+                if (communicationNetworkServiceConnectionManager != null) {
+                    communicationNetworkServiceConnectionManager.stop();
+                }
+
+                this.register = Boolean.FALSE;
+
+                reprocessMessages();
+
+                onClientConnectionLoose();
+
             }
-
-            this.register = Boolean.FALSE;
-
-            reprocessMessages();
-
-            onClientConnectionLoose();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -758,6 +789,8 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
 
         try {
 
+            System.out.println("Executing handleFailureComponentConnectionRequest ");
+            communicationNetworkServiceConnectionManager.removeRequestedConnection(event.getRemoteParticipant().getIdentityPublicKey());
             communicationSupervisorPendingMessagesAgent.removeConnectionWaitingForResponse(event.getRemoteParticipant().getIdentityPublicKey());
             checkFailedSendMessage(event.getRemoteParticipant().getIdentityPublicKey());
             onFailureComponentConnectionRequest(event.getRemoteParticipant());
@@ -995,7 +1028,8 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
      * This method is called when the network service method
      * AbstractPlugin#start() is called
      */
-    protected abstract void onStart() throws CantStartPluginException;
+    protected abstract void
+    onStart() throws CantStartPluginException;
 
     /**
      * This method is automatically called when the network service is registered
@@ -1023,8 +1057,7 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
     }
 
     /**
-     * This method is automatically called when the network service receive
-     * a new message was sent
+     * This method is automatically called when the message was sent
      *
      * @param messageSent
      */
@@ -1132,7 +1165,7 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
      */
     public CommunicationsClientConnection getCommunicationsClientConnection() {
 
-        return wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection();
+        return wsCommunicationsCloudClientManager.getCommunicationsCloudClientConnection(networkServiceType);
     }
 
     public ECCKeyPair getIdentity() {
@@ -1146,4 +1179,13 @@ public abstract class AbstractNetworkServiceBase  extends AbstractPlugin impleme
     public EventManager getEventManager() {
         return eventManager;
     }
+
+    /*
+     * setDesRegistered to when receive the CompleteRegistration of the Cloud Client then it will register in
+     * the new platform Cloud Server
+     */
+    public void setDesRegistered(){
+        this.register = Boolean.FALSE;
+    }
+
 }

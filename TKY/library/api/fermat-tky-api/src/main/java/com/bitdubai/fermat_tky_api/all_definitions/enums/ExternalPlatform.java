@@ -3,10 +3,14 @@ package com.bitdubai.fermat_tky_api.all_definitions.enums;
 import com.bitdubai.fermat_api.layer.all_definition.enums.interfaces.FermatEnum;
 import com.bitdubai.fermat_api.layer.all_definition.exceptions.InvalidParameterException;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Manuel Perez (darkpriestrelative@gmail.com) on 08/03/16.
  */
-public enum ExternalPlatform implements FermatEnum {
+public enum ExternalPlatform implements FermatEnum, Serializable {
 
     /**
      * Please for doing the code more readable, keep the elements of the enum ordered.
@@ -17,7 +21,7 @@ public enum ExternalPlatform implements FermatEnum {
     /**
      * sets the default platform that will be used at start up.
      */
-    private static final ExternalPlatform DEFAULT_EXTERNAL_PLATFORM = ExternalPlatform.TOKENLY;
+    public static final ExternalPlatform DEFAULT_EXTERNAL_PLATFORM = ExternalPlatform.TOKENLY;
 
     String code;
     ExternalPlatform(String code){
@@ -36,6 +40,26 @@ public enum ExternalPlatform implements FermatEnum {
                 "This Code Is Not Valid for the ExternalPlatform enum.");
     }
 
+    /**
+     * Returns an Array with all the platforms.
+     * @return
+     */
+    public static List<String> getArrayItems(){
+        List<String> platformsNames = new ArrayList<String>();
+        ExternalPlatform[] externalPlatforms = values();
+        for (ExternalPlatform externalPlatform : externalPlatforms) {
+            platformsNames.add(externalPlatform.name());
+        }
+        return  platformsNames;
+    }
+    public static ExternalPlatform getExternalPlatformByLabel(String label){
+        for (ExternalPlatform externalPlatform :
+                values()) {
+            if(externalPlatform.name().equals(label.toUpperCase()))
+                return externalPlatform;
+        }
+        return null;
+    }
     @Override
     public String toString() {
         return "ExternalPlatform{" +

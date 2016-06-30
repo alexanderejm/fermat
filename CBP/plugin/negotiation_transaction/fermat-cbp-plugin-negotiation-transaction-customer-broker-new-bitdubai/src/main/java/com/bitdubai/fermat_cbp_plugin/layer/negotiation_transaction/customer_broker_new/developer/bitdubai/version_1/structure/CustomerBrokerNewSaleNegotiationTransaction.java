@@ -10,8 +10,8 @@ import com.bitdubai.fermat_cbp_api.layer.negotiation.customer_broker_sale.interf
 import com.bitdubai.fermat_cbp_plugin.layer.negotiation_transaction.customer_broker_new.developer.bitdubai.version_1.database.CustomerBrokerNewNegotiationTransactionDatabaseDao;
 import com.bitdubai.fermat_cbp_plugin.layer.negotiation_transaction.customer_broker_new.developer.bitdubai.version_1.exceptions.CantNewSaleNegotiationTransactionException;
 import com.bitdubai.fermat_cbp_plugin.layer.negotiation_transaction.customer_broker_new.developer.bitdubai.version_1.exceptions.CantRegisterCustomerBrokerNewNegotiationTransactionException;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.enums.UnexpectedPluginExceptionSeverity;
-import com.bitdubai.fermat_pip_api.layer.platform_service.error_manager.interfaces.ErrorManager;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.error_manager.enums.UnexpectedPluginExceptionSeverity;
+import com.bitdubai.fermat_api.layer.all_definition.common.system.interfaces.ErrorManager;
 
 import java.util.UUID;
 
@@ -44,6 +44,13 @@ public class CustomerBrokerNewSaleNegotiationTransaction {
         this.pluginVersionReference                             = pluginVersionReference;
     }
 
+    /**
+     * Process negotiation transaction receive: register the sale negotiation and reception of the transaction
+     *
+     * @param transactionId
+     * @param customerBrokerSaleNegotiation
+     * @throws CantNewSaleNegotiationTransactionException
+     */
     public void receiveSaleNegotiationTranasction(UUID transactionId, CustomerBrokerSaleNegotiation customerBrokerSaleNegotiation)  throws CantNewSaleNegotiationTransactionException{
         try {
 

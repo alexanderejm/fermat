@@ -13,13 +13,14 @@ import com.bitdubai.fermat_api.layer.all_definition.settings.structure.SettingsM
 import com.bitdubai.fermat_api.layer.dmp_module.wallet_manager.CantLoadWalletsException;
 import com.bitdubai.fermat_api.layer.modules.common_classes.ActiveActorIdentityInformation;
 import com.bitdubai.fermat_api.layer.modules.exceptions.CantGetSelectedActorIdentityException;
-import com.bitdubai.fermat_api.layer.modules.interfaces.FermatSettings;
+import com.bitdubai.fermat_api.layer.osa_android.file_system.PluginFileSystem;
 import com.bitdubai.fermat_api.layer.world.interfaces.Currency;
 import com.bitdubai.fermat_bnk_api.all_definition.enums.BankAccountType;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.exceptions.CantAddNewAccountException;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.exceptions.CantCalculateBalanceException;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.exceptions.CantLoadBankMoneyWalletException;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.interfaces.BankAccountNumber;
+import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.interfaces.BankMoneyWallet;
 import com.bitdubai.fermat_bnk_api.layer.bnk_wallet.bank_money.interfaces.BankMoneyWalletManager;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.ActorType;
 import com.bitdubai.fermat_cbp_api.all_definition.enums.ClauseType;
@@ -38,7 +39,7 @@ import com.bitdubai.fermat_cbp_api.all_definition.negotiation.NegotiationBankAcc
 import com.bitdubai.fermat_cbp_api.all_definition.negotiation.NegotiationLocations;
 import com.bitdubai.fermat_cbp_api.layer.actor.crypto_broker.exceptions.CantClearBrokerIdentityWalletRelationshipException;
 import com.bitdubai.fermat_cbp_api.layer.actor.crypto_broker.exceptions.CantCreateNewBrokerIdentityWalletRelationshipException;
-import com.bitdubai.fermat_cbp_api.layer.actor.crypto_broker.exceptions.CantGetListBrokerIdentityWalletRelationshipException;
+import com.bitdubai.fermat_cbp_api.layer.actor.crypto_broker.exceptions.CantGetRelationBetweenBrokerIdentityAndBrokerWalletException;
 import com.bitdubai.fermat_cbp_api.layer.actor.crypto_broker.interfaces.BrokerIdentityWalletRelationship;
 import com.bitdubai.fermat_cbp_api.layer.actor.crypto_broker.interfaces.CryptoBrokerActorManager;
 import com.bitdubai.fermat_cbp_api.layer.actor_connection.crypto_customer.interfaces.CryptoCustomerActorConnectionManager;
@@ -61,15 +62,14 @@ import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_sale.exception
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_sale.interfaces.CustomerBrokerContractSale;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_sale.interfaces.CustomerBrokerContractSaleManager;
 import com.bitdubai.fermat_cbp_api.layer.contract.customer_broker_sale.interfaces.ListsForStatusSale;
-import com.bitdubai.fermat_cbp_api.layer.identity.crypto_broker.exceptions.CantCreateCryptoBrokerIdentityException;
 import com.bitdubai.fermat_cbp_api.layer.identity.crypto_broker.exceptions.CantGetCryptoBrokerIdentityException;
 import com.bitdubai.fermat_cbp_api.layer.identity.crypto_broker.exceptions.CantListCryptoBrokerIdentitiesException;
-import com.bitdubai.fermat_cbp_api.layer.identity.crypto_broker.exceptions.CryptoBrokerIdentityAlreadyExistsException;
 import com.bitdubai.fermat_cbp_api.layer.identity.crypto_broker.exceptions.IdentityNotFoundException;
 import com.bitdubai.fermat_cbp_api.layer.identity.crypto_broker.interfaces.CryptoBrokerIdentity;
 import com.bitdubai.fermat_cbp_api.layer.identity.crypto_broker.interfaces.CryptoBrokerIdentityManager;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.CantAssociatePairException;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.CantDisassociatePairException;
+import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.CantExtractEarningsException;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.CantListEarningsPairsException;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.CantLoadEarningSettingsException;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.CantRegisterEarningsSettingsException;
@@ -77,6 +77,8 @@ import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.C
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.EarningsSettingsNotRegisteredException;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.PairAlreadyAssociatedException;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.exceptions.PairNotFoundException;
+import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.interfaces.EarningExtractorManager;
+import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.interfaces.EarningTransaction;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.interfaces.EarningsPair;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.interfaces.EarningsSettings;
 import com.bitdubai.fermat_cbp_api.layer.middleware.matching_engine.interfaces.MatchingEngineManager;
@@ -137,14 +139,14 @@ import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.exceptions.CantNew
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.exceptions.CantNewEmptyCryptoBrokerWalletAssociatedSettingException;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.exceptions.CantNewEmptyCryptoBrokerWalletProviderSettingException;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.exceptions.CantNewEmptyCryptoBrokerWalletSettingException;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.exceptions.CantNewEmptyNegotiationBankAccountException;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.exceptions.CouldNotCancelNegotiationException;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.interfaces.ContractBasicInformation;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.interfaces.CustomerBrokerNegotiationInformation;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.common.interfaces.IndexInfoSummary;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.exceptions.CantGetCryptoBrokerIdentityListException;
 import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.exceptions.CantGetProvidersCurrentExchangeRatesException;
-import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletManager;
+import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletModuleManager;
+import com.bitdubai.fermat_cbp_api.layer.wallet_module.crypto_broker.interfaces.CryptoBrokerWalletPreferenceSettings;
 import com.bitdubai.fermat_ccp_api.layer.basic_wallet.bitcoin_wallet.interfaces.BitcoinWalletManager;
 import com.bitdubai.fermat_ccp_api.layer.basic_wallet.common.enums.BalanceType;
 import com.bitdubai.fermat_cer_api.all_definition.interfaces.CurrencyPair;
@@ -170,7 +172,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -182,7 +183,7 @@ import java.util.UUID;
  * @since 05/11/15
  * Modified by Franklin Marcano 23/12/15
  */
-public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements CryptoBrokerWalletManager {
+public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements CryptoBrokerWalletModuleManager {
     private final WalletManagerManager walletManagerManager;
     private final com.bitdubai.fermat_cbp_api.layer.wallet.crypto_broker.interfaces.CryptoBrokerWalletManager cryptoBrokerWalletManager;
     private final BankMoneyWalletManager bankMoneyWalletManager;
@@ -211,6 +212,9 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     private final MatchingEngineManager matchingEngineManager;
     private final CustomerBrokerCloseManager customerBrokerCloseManager;
     private final CryptoCustomerActorConnectionManager cryptoCustomerActorConnectionManager;
+    private final PluginFileSystem pluginFileSystem;
+    private final UUID pluginId;
+    private SettingsManager<CryptoBrokerWalletPreferenceSettings> settingsManager;
 
 
     public CryptoBrokerWalletModuleCryptoBrokerWalletManager(WalletManagerManager walletManagerManager,
@@ -240,7 +244,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
                                                              BrokerSubmitOnlineMerchandiseManager brokerSubmitOnlineMerchandiseManager,
                                                              MatchingEngineManager matchingEngineManager,
                                                              CustomerBrokerCloseManager customerBrokerCloseManager,
-                                                             CryptoCustomerActorConnectionManager cryptoCustomerActorConnectionManager) {
+                                                             CryptoCustomerActorConnectionManager cryptoCustomerActorConnectionManager, PluginFileSystem pluginFileSystem, UUID pluginId) {
         this.walletManagerManager = walletManagerManager;
         this.cryptoBrokerWalletManager = cryptoBrokerWalletManager;
         this.bankMoneyWalletManager = bankMoneyWalletManager;
@@ -269,6 +273,8 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
         this.matchingEngineManager = matchingEngineManager;
         this.customerBrokerCloseManager = customerBrokerCloseManager;
         this.cryptoCustomerActorConnectionManager = cryptoCustomerActorConnectionManager;
+        this.pluginFileSystem = pluginFileSystem;
+        this.pluginId = pluginId;
     }
 
     @Override
@@ -286,6 +292,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
                     CustomerBrokerSaleNegotiation saleNegotiation = customerBrokerSaleNegotiationManager.getNegotiationsByNegotiationId(UUID.fromString(saleContract.getNegotiatiotId()));
                     customerIdentity = getCustomerInfoByPublicKey(saleContract.getPublicKeyBroker(), saleContract.getPublicKeyCustomer());
                     contract = new CryptoBrokerWalletModuleContractBasicInformation(customerIdentity, saleContract, saleNegotiation);
+                    contract.setCancellationReason(saleContract.getCancelReason());
                     filteredList.add(contract);
                 }
 
@@ -306,6 +313,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
                     CustomerBrokerSaleNegotiation saleNegotiation = customerBrokerSaleNegotiationManager.getNegotiationsByNegotiationId(UUID.fromString(customerBrokerContractSale.getNegotiatiotId()));
                     customerIdentity = getCustomerInfoByPublicKey(customerBrokerContractSale.getPublicKeyBroker(), customerBrokerContractSale.getPublicKeyCustomer());
                     contract = new CryptoBrokerWalletModuleContractBasicInformation(customerIdentity, customerBrokerContractSale, saleNegotiation);
+                    contract.setCancellationReason(customerBrokerContractSale.getCancelReason());
                     filteredList.add(contract);
                 }
 
@@ -482,7 +490,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     @Override
     public Collection<NegotiationLocations> getAllLocations(NegotiationType negotiationType) throws CantGetListLocationsSaleException {
         Collection<NegotiationLocations> negotiationLocations = null;
-        if (Objects.equals(negotiationType.getCode(), NegotiationType.SALE.getCode())) {
+        if (negotiationType.getCode().equalsIgnoreCase(NegotiationType.SALE.getCode())) {
             negotiationLocations = customerBrokerSaleNegotiationManager.getAllLocations();
         }
         return negotiationLocations;
@@ -491,29 +499,30 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     @Override
     public long getCompletionDateForContractStatus(String contractHash, ContractStatus contractStatus, String paymentMethod) {
         try {
-            switch(contractStatus) {
+            switch (contractStatus) {
                 case PAYMENT_SUBMIT:
-                    if(paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
+                    if (paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
                         return customerOnlinePaymentManager.getCompletionDate(contractHash);
                     else
                         return customerOfflinePaymentManager.getCompletionDate(contractHash);
                 case PENDING_MERCHANDISE:
-                    if(paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
+                    if (paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
                         return brokerAckOnlinePaymentManager.getCompletionDate(contractHash);
                     else
                         return brokerAckOfflinePaymentManager.getCompletionDate(contractHash);
                 case MERCHANDISE_SUBMIT:
-                    if(paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
+                    if (paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
                         return brokerSubmitOnlineMerchandiseManager.getCompletionDate(contractHash);
                     else
                         return brokerSubmitOfflineMerchandiseManager.getCompletionDate(contractHash);
                 case READY_TO_CLOSE:
-                    if(paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
+                    if (paymentMethod.equals(MoneyType.CRYPTO.getFriendlyName()))
                         return customerAckOnlineMerchandiseManager.getCompletionDate(contractHash);
                     else
                         return customerAckOfflineMerchandiseManager.getCompletionDate(contractHash);
             }
-        }catch(CantGetCompletionDateException e) {}
+        } catch (CantGetCompletionDateException e) {
+        }
         return 0;
     }
 
@@ -594,7 +603,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     }
 
     @Override
-    public boolean haveAssociatedIdentity(String walletPublicKey) throws CantListCryptoBrokerIdentitiesException, CantGetListBrokerIdentityWalletRelationshipException {
+    public boolean haveAssociatedIdentity(String walletPublicKey) throws CantListCryptoBrokerIdentitiesException, CantGetRelationBetweenBrokerIdentityAndBrokerWalletException {
         List<CryptoBrokerIdentity> cryptoBrokerIdentities = cryptoBrokerIdentityManager.listIdentitiesFromCurrentDeviceUser();
         BrokerIdentityWalletRelationship relationship = cryptoBrokerActorManager.getBrokerIdentityWalletRelationshipByWallet(walletPublicKey);
 
@@ -612,7 +621,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     }
 
     @Override
-    public CryptoBrokerIdentity getAssociatedIdentity(String walletPublicKey) throws CantListCryptoBrokerIdentitiesException, CantGetListBrokerIdentityWalletRelationshipException, CantGetAssociatedIdentityException {
+    public CryptoBrokerIdentity getAssociatedIdentity(String walletPublicKey) throws CantListCryptoBrokerIdentitiesException, CantGetRelationBetweenBrokerIdentityAndBrokerWalletException, CantGetAssociatedIdentityException {
         List<CryptoBrokerIdentity> cryptoBrokerIdentities = cryptoBrokerIdentityManager.listIdentitiesFromCurrentDeviceUser();
         BrokerIdentityWalletRelationship relationship = cryptoBrokerActorManager.getBrokerIdentityWalletRelationshipByWallet(walletPublicKey);
 
@@ -665,8 +674,11 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
             if (merchandise.getCode().equals(currencyCode) && associatedWallet.getPlatform() == Platforms.BANKING_PLATFORM) {
                 List<BankAccountNumber> accounts = getAccounts(associatedWallet.getWalletPublicKey());
                 for (BankAccountNumber accountNumber : accounts) {
-                    paymentMethod.add("Bank: " + accountNumber.getBankName() + "\n Account: " + accountNumber.getAccount() +
-                            "\n Account Type: " + accountNumber.getAccountType().getFriendlyName());
+                    if (associatedWallet.getBankAccount().equals(accountNumber.getAccount())) {
+                        paymentMethod.add("Bank: " + accountNumber.getBankName() +
+                                "\nAccount Number: " + accountNumber.getAccount() +
+                                "\nAccount Type: " + accountNumber.getAccountType().getFriendlyName());
+                    }
                 }
             }
 
@@ -761,29 +773,22 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     }
 
     @Override
-    public NegotiationBankAccount newEmptyNegotiationBankAccount(UUID bankAccountId, String bankAccount, FiatCurrency fiatCurrency) throws CantNewEmptyNegotiationBankAccountException {
-        return new NegotiationBankAccountImpl(bankAccountId, bankAccount, fiatCurrency);
-    }
-
-    @Override
     public BankAccountNumber newEmptyBankAccountNumber(String bankName, BankAccountType bankAccountType, String alias, String account, FiatCurrency currencyType) throws CantNewEmptyBankAccountException {
         return new BankAccountNumberImpl(bankName, bankAccountType, alias, account, currencyType);
     }
 
     @Override
     public void addNewAccount(BankAccountNumber bankAccountNumber, String walletPublicKey) throws CantAddNewAccountException, CantLoadBankMoneyWalletException {
-        bankMoneyWalletManager.loadBankMoneyWallet(walletPublicKey).createBankName(bankAccountNumber.getBankName());
-        bankMoneyWalletManager.loadBankMoneyWallet(walletPublicKey).addNewAccount(bankAccountNumber);
+        final BankMoneyWallet bankMoneyWallet = bankMoneyWalletManager.loadBankMoneyWallet(walletPublicKey);
+
+        if (bankMoneyWallet.getBankName() == null)
+            bankMoneyWallet.createBankName(bankAccountNumber.getBankName());
+        bankMoneyWallet.addNewAccount(bankAccountNumber);
     }
 
     @Override
     public void createCashMoneyWallet(String walletPublicKey, FiatCurrency fiatCurrency) throws CantCreateCashMoneyWalletException {
         cashMoneyWalletManager.createCashMoneyWallet(walletPublicKey, fiatCurrency);
-    }
-
-    @Override
-    public CryptoBrokerIdentity createCryptoBrokerIdentity(String alias, byte[] image) throws CantCreateCryptoBrokerIdentityException, CryptoBrokerIdentityAlreadyExistsException {
-        return cryptoBrokerIdentityManager.createCryptoBrokerIdentity(alias, image);
     }
 
     @Override
@@ -808,10 +813,10 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     }
 
     @Override
-    public void clearAssociatedWalletSettings(String publicKeyWalletCryptoBrokerInstall) throws CryptoBrokerWalletNotFoundException, CantGetCryptoBrokerWalletSettingException, CantClearCryptoBrokerWalletSettingException {
+    public void clearAssociatedWalletSettings(String publicKeyWalletCryptoBrokerInstall, Platforms platform) throws CryptoBrokerWalletNotFoundException, CantGetCryptoBrokerWalletSettingException, CantClearCryptoBrokerWalletSettingException {
         //TODO: Quitar este hardcode luego que se implemente la instalacion de la wallet
         publicKeyWalletCryptoBrokerInstall = "walletPublicKeyTest";
-        cryptoBrokerWalletManager.loadCryptoBrokerWallet(publicKeyWalletCryptoBrokerInstall).getCryptoWalletSetting().clearCryptoBrokerWalletAssociatedSetting();
+        cryptoBrokerWalletManager.loadCryptoBrokerWallet(publicKeyWalletCryptoBrokerInstall).getCryptoWalletSetting().clearCryptoBrokerWalletAssociatedSetting(platform);
     }
 
     @Override
@@ -1063,12 +1068,12 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
 
     @Override
     public void createNewBankAccount(NegotiationBankAccount bankAccount) throws CantCreateBankAccountSaleException {
-        customerBrokerSaleNegotiationManager.createNewBankAccount(bankAccount);
+        //customerBrokerSaleNegotiationManager.createNewBankAccount(bankAccount);
     }
 
     @Override
     public void deleteBankAccount(NegotiationBankAccount bankAccount) throws CantDeleteBankAccountSaleException {
-        customerBrokerSaleNegotiationManager.deleteBankAccount(bankAccount);
+        //customerBrokerSaleNegotiationManager.deleteBankAccount(bankAccount);
     }
 
     @Override //TODO BNK
@@ -1097,8 +1102,16 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
     }
 
     @Override
-    public SettingsManager<FermatSettings> getSettingsManager() {
-        return null;
+    public SettingsManager<CryptoBrokerWalletPreferenceSettings> getSettingsManager() {
+        if (this.settingsManager != null)
+            return this.settingsManager;
+
+        this.settingsManager = new SettingsManager<>(
+                pluginFileSystem,
+                pluginId
+        );
+
+        return this.settingsManager;
     }
 
     @Override
@@ -1108,7 +1121,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
 
     @Override
     public void createIdentity(String name, String phrase, byte[] profile_img) throws Exception {
-        //DO NOTHING...
+        cryptoBrokerIdentityManager.createCryptoBrokerIdentity(name, profile_img);
     }
 
     @Override
@@ -1189,7 +1202,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
         try {
             CustomerBrokerContractSale customerBrokerContractSale;
             //TODO: This is the real implementation
-            customerBrokerContractSale=this.customerBrokerContractSaleManager.getCustomerBrokerContractSaleForContractId(contractHash);
+            customerBrokerContractSale = this.customerBrokerContractSaleManager.getCustomerBrokerContractSaleForContractId(contractHash);
 
             //TODO: for testing
             /*CustomerBrokerContractSaleManager customerBrokerContractSaleManagerMock = new CustomerBrokerContractSaleManagerMock();
@@ -1200,7 +1213,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
             CustomerBrokerSaleNegotiation customerBrokerSaleNegotiation = this.customerBrokerSaleNegotiationManager.getNegotiationsByNegotiationId(UUID.fromString(negotiationId));
             /*//TODO: remove this mock
             customerBrokerSaleNegotiation = new SaleNegotiationOnlineMock();*/
-            ContractClauseType contractClauseType = getContractClauseType(customerBrokerSaleNegotiation);
+            ContractClauseType contractClauseType = getContractClauseType(customerBrokerSaleNegotiation,ClauseType.BROKER_PAYMENT_METHOD);
 
             // Case: sending crypto merchandise.
             if (contractClauseType.getCode() == ContractClauseType.CRYPTO_TRANSFER.getCode()) {
@@ -1242,8 +1255,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
             CustomerBrokerSaleNegotiation customerBrokerPurchaseNegotiation = this.customerBrokerSaleNegotiationManager.getNegotiationsByNegotiationId(UUID.fromString(negotiationId));
             /*//TODO: remove this mock
             customerBrokerPurchaseNegotiation = new SaleNegotiationOfflineMock();*/
-            ContractClauseType contractClauseType = getContractClauseType(
-                    customerBrokerPurchaseNegotiation);
+            ContractClauseType contractClauseType = getContractClauseType(customerBrokerPurchaseNegotiation, ClauseType.CUSTOMER_PAYMENT_METHOD);
 
             // Case: ack crypto merchandise.
             if (contractClauseType == ContractClauseType.CRYPTO_TRANSFER) {
@@ -1353,7 +1365,13 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
         return earningsSettings.listEarningPairs();
     }
 
-    private ContractClauseType getContractClauseType(CustomerBrokerSaleNegotiation customerBrokerSaleNegotiation) throws CantGetListClauseException {
+    @Override
+    public boolean extractEarnings(EarningsPair earningsPair, List<EarningTransaction> earningTransactions) throws CantExtractEarningsException {
+        final EarningExtractorManager earningsExtractorManager = matchingEngineManager.getEarningsExtractorManager();
+        return earningsExtractorManager.extractEarnings(earningsPair, earningTransactions);
+    }
+
+    private ContractClauseType getContractClauseType(CustomerBrokerSaleNegotiation customerBrokerSaleNegotiation, ClauseType paramClauseType) throws CantGetListClauseException {
         try {
             //I will check if customerBrokerSaleNegotiation is null
             ObjectChecker.checkArgument(customerBrokerSaleNegotiation, "The customerBrokerSaleNegotiation is null");
@@ -1361,7 +1379,7 @@ public class CryptoBrokerWalletModuleCryptoBrokerWalletManager implements Crypto
             ClauseType clauseType;
             for (Clause clause : clauses) {
                 clauseType = clause.getType();
-                if (clauseType.getCode().equals(ClauseType.BROKER_PAYMENT_METHOD.getCode())) {
+                if (clauseType.getCode().equals(paramClauseType.getCode())) {
                     return ContractClauseType.getByCode(clause.getValue());
                 }
             }
